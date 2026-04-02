@@ -28,6 +28,10 @@
 }
 
 .ftv-date-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
     padding-left: 0.35rem;
 }
 
@@ -36,11 +40,40 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.2rem;
-    border: 0;
-    background: transparent;
-    padding: 0;
     text-align: left;
-    cursor: pointer;
+    min-width: 0;
+}
+
+.ftv-date-toggle {
+    margin: calc(var(--spacing) * -2);
+    width: calc(var(--spacing) * 9);
+    height: calc(var(--spacing) * 9);
+    border-radius: var(--radius-lg);
+    color: var(--gray-500);
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+    --tw-duration: 75ms;
+    --tw-outline-style: none;
+    outline-style: none;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    position: relative;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+}
+
+.ftv-date-toggle-icon {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+    --tw-duration: 75ms;
+}
+
+.ftv-group-collapsible.ftv-group-collapsed .ftv-date-toggle-icon {
+    rotate: -180deg;
 }
 
 .ftv-date-primary {
@@ -99,6 +132,10 @@
     display: block;
     padding-left: 0.55rem;
     text-decoration: none;
+}
+
+.ftv-item-link {
+    cursor: pointer;
 }
 
 .ftv-item:hover .ftv-card {
@@ -228,6 +265,7 @@
 
 .ftv-card-meta-time {
     white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .ftv-collapsed {

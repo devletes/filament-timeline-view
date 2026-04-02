@@ -21,8 +21,7 @@ composer require devletes/filament-timeline-view
 ```php
 [
     'id' => 1,
-    'date_key' => '2026-04-02',
-    'date_label' => 'Today',
+    'created_at' => now(),
     'title' => 'Welcome to the Team',
     'content' => 'A quick introduction and welcome.',
     'url' => '/employee/pulse/1',
@@ -38,6 +37,8 @@ composer require devletes/filament-timeline-view
 ]
 ```
 
+`created_at` is the canonical timeline timestamp. The package derives the date grouping, weekday label, and time label from it by default. `date_key`, `date_label`, and `time_label` can still be passed as optional overrides when needed.
+
 ## Basic Usage
 
 ### In a schema or page
@@ -47,6 +48,7 @@ use Devletes\FilamentTimelineView\Schemas\Components\Timeline;
 
 Timeline::make('pulse')
     ->items(fn () => $this->items)
+    ->collapsible()
     ->hasMore(fn () => $this->hasMoreItems)
     ->loadMoreAction('loadMoreItems');
 ```
@@ -58,8 +60,9 @@ use Devletes\FilamentTimelineView\Infolists\Components\TimelineEntry;
 
 TimelineEntry::make('history')
     ->records(fn ($record) => $record->activities)
+    ->collapsible()
     ->mapItemUsing(fn ($activity) => [
-        'published_at' => $activity->created_at,
+        'created_at' => $activity->created_at,
         'title' => $activity->title,
         'content' => $activity->description,
     ]);
@@ -68,4 +71,3 @@ TimelineEntry::make('history')
 ## Versioning
 
 Packagist versions should come from git tags. For prereleases, use semantic version tags such as `v0.1.0-beta.1`.
-

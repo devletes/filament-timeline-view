@@ -13,6 +13,8 @@ class TestTimelineWidget extends TimelineWidget
 
     public static bool $hasMore = false;
 
+    public static bool $timelineIsCollapsible = false;
+
     public static int $loadMoreCalls = 0;
 
     protected function getTimelineHeading(): string
@@ -38,6 +40,11 @@ class TestTimelineWidget extends TimelineWidget
     protected function getTimelineHasMore(): bool
     {
         return static::$hasMore;
+    }
+
+    public function isTimelineCollapsible(): bool
+    {
+        return static::$timelineIsCollapsible;
     }
 
     protected function getLoadMoreHandler(): ?string

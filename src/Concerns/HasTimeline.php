@@ -19,6 +19,8 @@ trait HasTimeline
 
     protected bool | Closure $timelineHasMore = false;
 
+    protected bool | Closure $isTimelineCollapsible = false;
+
     protected bool | Closure $isTimelineLoadMoreEnabled = false;
 
     protected string | Closure | null $timelineLoadMoreAction = null;
@@ -60,6 +62,13 @@ trait HasTimeline
     public function hasMore(bool | Closure $condition = true): static
     {
         $this->timelineHasMore = $condition;
+
+        return $this;
+    }
+
+    public function collapsible(bool | Closure $condition = true): static
+    {
+        $this->isTimelineCollapsible = $condition;
 
         return $this;
     }
@@ -112,7 +121,7 @@ trait HasTimeline
             $group['collapsed_summary'] = $this->getCollapsedSummaryText(count($group['items']));
             $group['display'] = $this->resolveDateDisplay(
                 $group['date_key'],
-                $group['date_label'] ?: $group['date_key'],
+                $group['date_label'] ?? null,
             );
         }
 
@@ -142,6 +151,11 @@ trait HasTimeline
         }
 
         return (bool) $this->evaluate($this->timelineHasMore);
+    }
+
+    public function isTimelineCollapsible(): bool
+    {
+        return (bool) $this->evaluate($this->isTimelineCollapsible);
     }
 
     public function getTimelineLoadMoreAction(): ?string
@@ -227,7 +241,8 @@ trait HasTimeline
 
                 return [
                     'date_key' => $dateKey,
-                    'date_label' => $first['date_label'] ?? $dateKey,
+                    'date_label' => $first['date_label'] ?? null,
+                    'created_at' => $first['created_at'] ?? null,
                     'collapsed' => false,
                     'items' => $groupItems->values()->all(),
                 ];
@@ -244,13 +259,17 @@ trait HasTimeline
     {
         return collect($groups instanceof Arrayable ? $groups->toArray() : $groups)
             ->map(function (array $group): array {
-                $dateKey = (string) ($group['date_key'] ?? '');
+                $items = $this->normalizeGroupedTimelineItems($group['items'] ?? [], (string) ($group['date_key'] ?? ''));
+                $createdAt = $this->normalizeTimelineDate($group['created_at'] ?? null)
+                    ?? collect($items)->pluck('created_at')->filter()->first();
+                $dateKey = (string) ($group['date_key'] ?? ($createdAt?->toDateString() ?? ''));
 
                 return [
                     'date_key' => $dateKey,
-                    'date_label' => (string) ($group['date_label'] ?? $group['date_key'] ?? ''),
+                    'date_label' => filled($group['date_label'] ?? null) ? (string) $group['date_label'] : null,
+                    'created_at' => $createdAt,
                     'collapsed' => (bool) ($group['collapsed'] ?? false),
-                    'items' => $this->normalizeGroupedTimelineItems($group['items'] ?? [], $dateKey),
+                    'items' => $items,
                 ];
             })
             ->filter(fn (array $group): bool => $group['date_key'] !== '')
@@ -266,23 +285,23 @@ trait HasTimeline
     {
         return collect($items instanceof Arrayable ? $items->toArray() : $items)
             ->map(function (array $item): array {
-                $publishedAt = $this->normalizeTimelineDate($item['published_at'] ?? null);
+                $createdAt = $this->normalizeTimelineDate($item['created_at'] ?? ($item['published_at'] ?? null));
 
                 return [
                     'id' => $item['id'] ?? null,
-                    'date_key' => (string) ($item['date_key'] ?? ($publishedAt?->toDateString() ?? '')),
-                    'date_label' => (string) ($item['date_label'] ?? ''),
+                    'date_key' => (string) ($item['date_key'] ?? ($createdAt?->toDateString() ?? '')),
+                    'date_label' => filled($item['date_label'] ?? null) ? (string) $item['date_label'] : null,
                     'title' => (string) ($item['title'] ?? ''),
                     'content' => (string) ($item['content'] ?? ''),
                     'url' => $item['url'] ?? null,
                     'tags' => $this->normalizeTimelineTags($item['tags'] ?? []),
                     'user' => $this->normalizeTimelineUser($item['user'] ?? null),
-                    'time_label' => (string) ($item['time_label'] ?? ($publishedAt?->format('g:i A') ?? '')),
+                    'time_label' => (string) ($item['time_label'] ?? ($createdAt?->format('g:i A') ?? '')),
                     'meta' => $item['meta'] ?? null,
                     'image_url' => $item['image_url'] ?? null,
                     'image_alt' => $item['image_alt'] ?? null,
                     'accent_color' => $item['accent_color'] ?? null,
-                    'published_at' => $publishedAt,
+                    'created_at' => $createdAt,
                 ];
             })
             ->filter(fn (array $item): bool => $item['date_key'] !== '' && ($item['title'] !== '' || $item['content'] !== ''))
@@ -298,23 +317,23 @@ trait HasTimeline
     {
         return collect($items instanceof Arrayable ? $items->toArray() : $items)
             ->map(function (array $item) use ($dateKey): array {
-                $publishedAt = $this->normalizeTimelineDate($item['published_at'] ?? null);
+                $createdAt = $this->normalizeTimelineDate($item['created_at'] ?? ($item['published_at'] ?? null));
 
                 return [
                     'id' => $item['id'] ?? null,
-                    'date_key' => (string) ($item['date_key'] ?? $dateKey),
-                    'date_label' => (string) ($item['date_label'] ?? ''),
+                    'date_key' => (string) ($item['date_key'] ?? ($createdAt?->toDateString() ?? $dateKey)),
+                    'date_label' => filled($item['date_label'] ?? null) ? (string) $item['date_label'] : null,
                     'title' => (string) ($item['title'] ?? ''),
                     'content' => (string) ($item['content'] ?? ''),
                     'url' => $item['url'] ?? null,
                     'tags' => $this->normalizeTimelineTags($item['tags'] ?? []),
                     'user' => $this->normalizeTimelineUser($item['user'] ?? null),
-                    'time_label' => (string) ($item['time_label'] ?? ($publishedAt?->format('g:i A') ?? '')),
+                    'time_label' => (string) ($item['time_label'] ?? ($createdAt?->format('g:i A') ?? '')),
                     'meta' => $item['meta'] ?? null,
                     'image_url' => $item['image_url'] ?? null,
                     'image_alt' => $item['image_alt'] ?? null,
                     'accent_color' => $item['accent_color'] ?? null,
-                    'published_at' => $publishedAt,
+                    'created_at' => $createdAt,
                 ];
             })
             ->filter(fn (array $item): bool => $item['title'] !== '' || $item['content'] !== '')
@@ -330,18 +349,18 @@ trait HasTimeline
     /**
      * @return array{primary: string, secondary: ?string}
      */
-    protected function resolveDateDisplay(string $dateKey, string $dateLabel): array
+    protected function resolveDateDisplay(string $dateKey, ?string $dateLabel = null): array
     {
         try {
             $date = Carbon::parse($dateKey);
 
             return [
-                'primary' => $dateLabel,
+                'primary' => filled($dateLabel) ? $dateLabel : ($date->isToday() ? 'Today' : $date->format('l')),
                 'secondary' => $date->format('M j'),
             ];
         } catch (\Throwable) {
             return [
-                'primary' => $dateLabel,
+                'primary' => $dateLabel ?: $dateKey,
                 'secondary' => null,
             ];
         }

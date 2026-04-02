@@ -7,6 +7,7 @@ beforeEach(function (): void {
     TestTimelineWidget::$items = [];
     TestTimelineWidget::$groups = [];
     TestTimelineWidget::$hasMore = false;
+    TestTimelineWidget::$timelineIsCollapsible = false;
     TestTimelineWidget::$loadMoreCalls = 0;
 });
 
@@ -14,28 +15,45 @@ it('renders grouped dates from flat items', function (): void {
     TestTimelineWidget::$items = [
         [
             'id' => 2,
-            'date_key' => '2026-04-02',
-            'date_label' => 'Thursday',
+            'created_at' => '2026-04-10 09:00:00',
             'title' => 'Second',
             'content' => 'Second body',
         ],
         [
             'id' => 1,
-            'date_key' => '2026-04-01',
-            'date_label' => 'Wednesday',
+            'created_at' => '2026-04-09 08:00:00',
             'title' => 'First',
             'content' => 'First body',
         ],
     ];
 
     Livewire::test(TestTimelineWidget::class)
+        ->assertSee('Friday')
         ->assertSee('Thursday')
-        ->assertSee('Wednesday')
         ->assertSee('Second body')
         ->assertSee('First body');
 });
 
+it('infers date groups and time labels from created_at by default', function (): void {
+    TestTimelineWidget::$items = [
+        [
+            'id' => 1,
+            'created_at' => '2026-04-10 18:23:00',
+            'title' => 'Created at item',
+            'content' => 'Derived grouping and time',
+        ],
+    ];
+
+    Livewire::test(TestTimelineWidget::class)
+        ->assertSee('Friday')
+        ->assertSee('Apr 10')
+        ->assertSee('6:23 PM')
+        ->assertSee('Created at item');
+});
+
 it('shows collapsed group counts from provided grouped input', function (): void {
+    TestTimelineWidget::$timelineIsCollapsible = true;
+
     TestTimelineWidget::$groups = [
         [
             'date_key' => '2026-04-01',
@@ -51,6 +69,25 @@ it('shows collapsed group counts from provided grouped input', function (): void
 
     Livewire::test(TestTimelineWidget::class)
         ->assertSee('3 posts hidden');
+});
+
+it('renders a dedicated caret toggle only when the timeline is collapsible', function (): void {
+    TestTimelineWidget::$items = [
+        [
+            'id' => 1,
+            'created_at' => '2026-04-10 18:23:00',
+            'title' => 'Collapsible item',
+            'content' => 'Body',
+        ],
+    ];
+
+    Livewire::test(TestTimelineWidget::class)
+        ->assertDontSee('Toggle Friday timeline items');
+
+    TestTimelineWidget::$timelineIsCollapsible = true;
+
+    Livewire::test(TestTimelineWidget::class)
+        ->assertSee('Toggle Friday timeline items');
 });
 
 it('triggers the generic load more interaction when requested', function (): void {

@@ -1,5 +1,6 @@
 @php
     $collapsedState = $timelineComponent->getTimelineCollapsedState();
+    $isCollapsible = $timelineComponent->isTimelineCollapsible();
 @endphp
 
 <div
@@ -17,23 +18,40 @@
                 <div @class([
                     'ftv-group',
                     'ftv-group-last' => $loop->last,
-                ])>
+                    'ftv-group-collapsible' => $isCollapsible,
+                ])
+                    @if ($isCollapsible)
+                        x-bind:class="{ 'ftv-group-collapsed': collapsed['{{ $group['date_key'] }}'] ?? false }"
+                    @endif
+                >
                     <div class="ftv-date-row">
-                        <button
-                            type="button"
-                            x-on:click="collapsed['{{ $group['date_key'] }}'] = ! (collapsed['{{ $group['date_key'] }}'] ?? false)"
-                            class="ftv-date-button"
-                        >
+                        <div class="ftv-date-button">
                             <span class="ftv-date-primary text-sm font-bold text-gray-950 dark:text-white">{{ $group['display']['primary'] }}</span>
 
                             @if ($group['display']['secondary'])
                                 <span class="ftv-date-secondary text-sm text-gray-500 dark:text-gray-400">{{ $group['display']['secondary'] }}</span>
                             @endif
-                        </button>
+                        </div>
+
+                        @if ($isCollapsible)
+                            <button
+                                type="button"
+                                x-on:click="collapsed['{{ $group['date_key'] }}'] = ! (collapsed['{{ $group['date_key'] }}'] ?? false)"
+                                class="ftv-date-toggle"
+                                x-bind:aria-expanded="(! (collapsed['{{ $group['date_key'] }}'] ?? false)).toString()"
+                                aria-label="Toggle {{ $group['display']['primary'] }} timeline items"
+                            >
+                                <x-filament::icon
+                                    alias="timeline::collapse"
+                                    icon="heroicon-m-chevron-down"
+                                    class="ftv-date-toggle-icon h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500"
+                                />
+                            </button>
+                        @endif
                     </div>
 
                     <div class="ftv-group-body @if (count($group['items'])) ftv-group-body-has-line @endif">
-                        <div x-show="collapsed['{{ $group['date_key'] }}'] ?? false" x-cloak>
+                        <div x-show="{{ $isCollapsible ? "(collapsed['{$group['date_key']}'] ?? false)" : 'false' }}" x-cloak>
                             <button
                                 type="button"
                                 x-on:click="collapsed['{{ $group['date_key'] }}'] = false"
@@ -43,7 +61,7 @@
                             </button>
                         </div>
 
-                        <div x-show="! (collapsed['{{ $group['date_key'] }}'] ?? false)" x-cloak>
+                        <div x-show="{{ $isCollapsible ? "! (collapsed['{$group['date_key']}'] ?? false)" : 'true' }}" x-cloak>
                             <div class="ftv-items">
                                 @foreach ($group['items'] as $item)
                                     @php
@@ -80,20 +98,11 @@
                                             'avatar_url' => is_string(data_get($item, 'user.avatar_url')) ? data_get($item, 'user.avatar_url') : null,
                                             'url' => is_string(data_get($item, 'user.url')) ? data_get($item, 'user.url') : null,
                                         ] : null;
-                                        $visibleTags = $itemTags->take(3);
+                                        $visibleTags = $itemTags->take(filled($item['image_url']) ? 2 : 3);
                                         $hiddenTagCount = max($itemTags->count() - $visibleTags->count(), 0);
                                     @endphp
 
-                                    <div
-                                        @if (filled($item['url']))
-                                            role="link"
-                                            tabindex="0"
-                                            x-on:click="window.location.href = @js($item['url'])"
-                                            x-on:keydown.enter.prevent="window.location.href = @js($item['url'])"
-                                            x-on:keydown.space.prevent="window.location.href = @js($item['url'])"
-                                        @endif
-                                        class="ftv-item"
-                                    >
+                                    <div class="ftv-item">
                                         <span class="ftv-item-dot rounded-full"></span>
 
                                         <span
@@ -118,7 +127,18 @@
 
                                                 <div class="ftv-card-copy">
                                                     @if (filled($item['title']))
-                                                        <h3 class="ftv-card-title text-base font-bold text-gray-950 dark:text-white">{{ $item['title'] }}</h3>
+                                                        <h3 class="ftv-card-title text-base font-bold text-gray-950 dark:text-white">
+                                                            @if (filled($item['url']))
+                                                                <a
+                                                                    href="{{ $item['url'] }}"
+                                                                    class="ftv-item-link"
+                                                                >
+                                                                    {{ $item['title'] }}
+                                                                </a>
+                                                            @else
+                                                                {{ $item['title'] }}
+                                                            @endif
+                                                        </h3>
                                                     @endif
 
                                                     @if (filled($item['content']))

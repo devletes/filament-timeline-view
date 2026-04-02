@@ -1,0 +1,81 @@
+{
+    "name": "devletes/filament-timeline-view",
+    "description": "Show chronological data as a timeline in Filament infolists, pages, and widgets.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "infolist",
+        "laravel",
+        "page",
+        "timeline",
+        "widget"
+    ],
+    "authors": [
+        {
+            "name": "Devletes",
+            "email": "packages@devletes.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^5.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "blade-ui-kit/blade-heroicons": "*",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Devletes\\FilamentTimelineView\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Devletes\\FilamentTimelineView\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "format": "vendor/bin/pint",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "filament-assets": "@php vendor/orchestra/testbench-core/laravel/artisan filament:assets --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@filament-assets",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --ansi"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Devletes\\FilamentTimelineView\\TimelineViewServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

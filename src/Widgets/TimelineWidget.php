@@ -2,14 +2,15 @@
 
 namespace Devletes\FilamentTimelineView\Widgets;
 
-use Carbon\CarbonInterface;
+use Devletes\FilamentTimelineView\Concerns\NormalizesTimelineData;
 use Filament\Widgets\Widget;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class TimelineWidget extends Widget
 {
+    use NormalizesTimelineData;
+
     protected static bool $isLazy = false;
 
     protected string $view = 'filament-timeline-view::widgets.timeline-widget';
@@ -47,35 +48,12 @@ class TimelineWidget extends Widget
         $this->synchronizeCollapsedDates();
     }
 
-    protected function getViewData(): array
-    {
-        return [
-            'heading' => $this->getTimelineHeading(),
-            'description' => $this->getTimelineDescription(),
-            'emptyHeading' => $this->getEmptyStateHeading(),
-            'emptyDescription' => $this->getEmptyStateDescription(),
-            'groups' => $this->getPreparedGroups(),
-            'hasMore' => $this->getTimelineHasMore(),
-            'isCollapsible' => $this->isTimelineCollapsible(),
-        ];
-    }
-
-    protected function getTimelineHeading(): string
-    {
-        return 'Timeline';
-    }
-
-    protected function getTimelineDescription(): ?string
-    {
-        return null;
-    }
-
-    protected function getEmptyStateHeading(): string
+    public function getTimelineEmptyStateHeading(): string
     {
         return 'Nothing to show yet';
     }
 
-    protected function getEmptyStateDescription(): string
+    public function getTimelineEmptyStateDescription(): string
     {
         return 'Timeline items will appear here once data is provided.';
     }
@@ -83,7 +61,7 @@ class TimelineWidget extends Widget
     /**
      * @return array<int, array<string, mixed>>|Collection<int, array<string, mixed>>
      */
-    protected function getTimelineItems(): array | Collection
+    protected function getTimelineItems(): array|Collection
     {
         return [];
     }
@@ -91,7 +69,7 @@ class TimelineWidget extends Widget
     /**
      * @return array<int, array<string, mixed>>|Collection<int, array<string, mixed>>
      */
-    protected function getTimelineGroups(): array | Collection
+    protected function getTimelineGroups(): array|Collection
     {
         return [];
     }
@@ -106,25 +84,35 @@ class TimelineWidget extends Widget
         return $this->isCollapsible;
     }
 
-    protected function getLoadMoreIncrement(): int
+    public function hasTimelineLoadMore(): bool
     {
-        return 10;
+        return $this->getTimelineHasMore();
     }
 
-    protected function getInitialVisibleItemCount(): int
+    public function getTimelineLoadMoreAction(): string
     {
-        return 10;
+        return 'loadMore';
     }
 
-    protected function getLoadMoreHandler(): ?string
+    public function getTimelineLoadMoreLabel(): string
     {
-        return null;
+        return 'Load more';
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    public function getTimelineCollapsedState(): array
+    {
+        return collect($this->getPreparedTimelineGroups())
+            ->mapWithKeys(fn (array $group): array => [$group['date_key'] => (bool) ($group['collapsed'] ?? false)])
+            ->all();
     }
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    protected function getPreparedGroups(): array
+    public function getPreparedTimelineGroups(): array
     {
         $groups = $this->resolveGroups();
 
@@ -146,35 +134,25 @@ class TimelineWidget extends Widget
         return $groups;
     }
 
+    protected function getLoadMoreIncrement(): int
+    {
+        return 10;
+    }
+
+    protected function getInitialVisibleItemCount(): int
+    {
+        return 10;
+    }
+
+    protected function getLoadMoreHandler(): ?string
+    {
+        return null;
+    }
+
     protected function synchronizeCollapsedDates(): void
     {
         foreach ($this->resolveGroups() as $group) {
             $this->collapsedDates[$group['date_key']] ??= (bool) ($group['collapsed'] ?? false);
-        }
-    }
-
-    protected function getCollapsedSummaryText(int $itemCount): string
-    {
-        return $itemCount === 1 ? '1 post hidden' : "{$itemCount} posts hidden";
-    }
-
-    /**
-     * @return array{primary: string, secondary: ?string}
-     */
-    protected function resolveDateDisplay(string $dateKey, ?string $dateLabel = null): array
-    {
-        try {
-            $date = Carbon::parse($dateKey);
-
-            return [
-                'primary' => filled($dateLabel) ? $dateLabel : ($date->isToday() ? 'Today' : $date->format('l')),
-                'secondary' => $date->format('M j'),
-            ];
-        } catch (\Throwable) {
-            return [
-                'primary' => $dateLabel ?: $dateKey,
-                'secondary' => null,
-            ];
         }
     }
 
@@ -183,202 +161,26 @@ class TimelineWidget extends Widget
      */
     protected function resolveGroups(): array
     {
-        $groups = $this->normalizeGroups($this->getTimelineGroups());
+        $groups = $this->normalizeTimelineGroups($this->toTimelineArrayable($this->getTimelineGroups()));
 
         if ($groups !== []) {
             return $groups;
         }
 
-        return $this->groupItems($this->normalizeItems($this->getTimelineItems()));
+        return $this->groupTimelineItems(
+            $this->normalizeTimelineItems($this->toTimelineArrayable($this->getTimelineItems())),
+        );
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $items
-     * @return array<int, array<string, mixed>>
+     * @return array<int, mixed>|Collection<int, mixed>|Arrayable<int, mixed>
      */
-    protected function groupItems(array $items): array
+    protected function toTimelineArrayable(mixed $value): array|Collection|Arrayable
     {
-        return collect($items)
-            ->groupBy(fn (array $item): string => $item['date_key'])
-            ->map(function (Collection $groupItems, string $dateKey): array {
-                $first = $groupItems->first();
-
-                return [
-                    'date_key' => $dateKey,
-                    'date_label' => $first['date_label'] ?? null,
-                    'created_at' => $first['created_at'] ?? null,
-                    'collapsed' => false,
-                    'items' => $groupItems->values()->all(),
-                ];
-            })
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>|Collection<int, array<string, mixed>>|Arrayable<int, array<string, mixed>>  $groups
-     * @return array<int, array<string, mixed>>
-     */
-    protected function normalizeGroups(array | Collection | Arrayable $groups): array
-    {
-        return collect($groups instanceof Arrayable ? $groups->toArray() : $groups)
-            ->map(function (array $group): array {
-                $items = $this->normalizeGroupedItems($group['items'] ?? [], (string) ($group['date_key'] ?? ''));
-                $createdAt = $this->normalizeDate($group['created_at'] ?? null)
-                    ?? collect($items)->pluck('created_at')->filter()->first();
-                $dateKey = (string) ($group['date_key'] ?? ($createdAt?->toDateString() ?? ''));
-
-                return [
-                    'date_key' => $dateKey,
-                    'date_label' => filled($group['date_label'] ?? null) ? (string) $group['date_label'] : null,
-                    'created_at' => $createdAt,
-                    'collapsed' => (bool) ($group['collapsed'] ?? false),
-                    'items' => $items,
-                ];
-            })
-            ->filter(fn (array $group): bool => $group['date_key'] !== '')
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>|Collection<int, array<string, mixed>>|Arrayable<int, array<string, mixed>>  $items
-     * @return array<int, array<string, mixed>>
-     */
-    protected function normalizeItems(array | Collection | Arrayable $items): array
-    {
-        return collect($items instanceof Arrayable ? $items->toArray() : $items)
-            ->map(function (array $item): array {
-                $createdAt = $this->normalizeDate($item['created_at'] ?? ($item['published_at'] ?? null));
-
-                return [
-                    'id' => $item['id'] ?? null,
-                    'date_key' => (string) ($item['date_key'] ?? ($createdAt?->toDateString() ?? '')),
-                    'date_label' => filled($item['date_label'] ?? null) ? (string) $item['date_label'] : null,
-                    'title' => (string) ($item['title'] ?? ''),
-                    'content' => (string) ($item['content'] ?? ''),
-                    'url' => $item['url'] ?? null,
-                    'tags' => $this->normalizeTags($item['tags'] ?? []),
-                    'user' => $this->normalizeUser($item['user'] ?? null),
-                    'time_label' => (string) ($item['time_label'] ?? ($createdAt?->format('g:i A') ?? '')),
-                    'meta' => $item['meta'] ?? null,
-                    'image_url' => $item['image_url'] ?? null,
-                    'image_alt' => $item['image_alt'] ?? null,
-                    'accent_color' => $item['accent_color'] ?? null,
-                    'created_at' => $createdAt,
-                ];
-            })
-            ->filter(fn (array $item): bool => $item['date_key'] !== '' && ($item['title'] !== '' || $item['content'] !== ''))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>|Collection<int, array<string, mixed>>|Arrayable<int, array<string, mixed>>  $items
-     * @return array<int, array<string, mixed>>
-     */
-    protected function normalizeGroupedItems(array | Collection | Arrayable $items, string $dateKey): array
-    {
-        return collect($items instanceof Arrayable ? $items->toArray() : $items)
-            ->map(function (array $item) use ($dateKey): array {
-                $createdAt = $this->normalizeDate($item['created_at'] ?? ($item['published_at'] ?? null));
-
-                return [
-                    'id' => $item['id'] ?? null,
-                    'date_key' => (string) ($item['date_key'] ?? ($createdAt?->toDateString() ?? $dateKey)),
-                    'date_label' => filled($item['date_label'] ?? null) ? (string) $item['date_label'] : null,
-                    'title' => (string) ($item['title'] ?? ''),
-                    'content' => (string) ($item['content'] ?? ''),
-                    'url' => $item['url'] ?? null,
-                    'tags' => $this->normalizeTags($item['tags'] ?? []),
-                    'user' => $this->normalizeUser($item['user'] ?? null),
-                    'time_label' => (string) ($item['time_label'] ?? ($createdAt?->format('g:i A') ?? '')),
-                    'meta' => $item['meta'] ?? null,
-                    'image_url' => $item['image_url'] ?? null,
-                    'image_alt' => $item['image_alt'] ?? null,
-                    'accent_color' => $item['accent_color'] ?? null,
-                    'created_at' => $createdAt,
-                ];
-            })
-            ->filter(fn (array $item): bool => $item['title'] !== '' || $item['content'] !== '')
-            ->values()
-            ->all();
-    }
-
-    protected function normalizeDate(mixed $value): ?CarbonInterface
-    {
-        if ($value instanceof CarbonInterface) {
+        if (is_array($value) || $value instanceof Collection || $value instanceof Arrayable) {
             return $value;
         }
 
-        if (blank($value)) {
-            return null;
-        }
-
-        try {
-            return Carbon::parse((string) $value);
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    /**
-     * @return array<int, array{label: string, url: ?string}>
-     */
-    protected function normalizeTags(mixed $tags): array
-    {
-        return collect($tags instanceof Arrayable ? $tags->toArray() : $tags)
-            ->map(function (mixed $tag): ?array {
-                if (blank($tag)) {
-                    return null;
-                }
-
-                if (is_string($tag)) {
-                    return [
-                        'label' => $tag,
-                        'url' => null,
-                    ];
-                }
-
-                if (! is_array($tag)) {
-                    return null;
-                }
-
-                $label = (string) ($tag['label'] ?? '');
-
-                if ($label === '') {
-                    return null;
-                }
-
-                return [
-                    'label' => $label,
-                    'url' => filled($tag['url'] ?? null) ? (string) $tag['url'] : null,
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array{name: string, avatar_url: ?string, url: ?string}|null
-     */
-    protected function normalizeUser(mixed $user): ?array
-    {
-        if (! is_array($user)) {
-            return null;
-        }
-
-        $name = (string) ($user['name'] ?? '');
-
-        if ($name === '') {
-            return null;
-        }
-
-        return [
-            'name' => $name,
-            'avatar_url' => filled($user['avatar_url'] ?? null) ? (string) $user['avatar_url'] : null,
-            'url' => filled($user['url'] ?? null) ? (string) $user['url'] : null,
-        ];
+        return [];
     }
 }

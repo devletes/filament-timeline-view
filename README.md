@@ -1,6 +1,12 @@
 # Filament Timeline View
 
-Show chronological data as a timeline in Filament infolists, pages, and widgets.
+Show chronological data as a timeline in Filament infolists, schemas/pages, and widgets.
+
+## Requirements
+
+- PHP `^8.2`
+- Laravel `^11.0` or `^12.0`
+- Filament `^5.0`
 
 ## Installation
 
@@ -8,15 +14,20 @@ Show chronological data as a timeline in Filament infolists, pages, and widgets.
 composer require devletes/filament-timeline-view
 ```
 
-## What It Supports
+The package registers its CSS asset with `FilamentAsset`, so it is picked up automatically when Filament publishes assets. If you run `php artisan filament:assets` in your app, the timeline styles will be bundled alongside Filament's own.
 
-- Filament infolist entries
-- Filament schema components for pages and custom layouts
-- Filament widgets
-- Flat items, grouped items, or mapped records
-- Optional load-more actions controlled by the host Livewire component
+No config file is published — everything is configured fluently on the component or via widget method overrides.
 
-## Timeline Item Shape
+## What it supports
+
+- Filament **infolist** entries (`TimelineEntry`)
+- Filament **schema** components for pages and custom layouts (`Timeline`)
+- Filament **widgets** (`TimelineWidget`)
+- Flat items, pre-grouped items, or mapped records
+- Optional collapsible day groups
+- Optional "load more" action, delegated to the host Livewire component
+
+## Timeline item shape
 
 ```php
 [
@@ -37,9 +48,17 @@ composer require devletes/filament-timeline-view
 ]
 ```
 
-`created_at` is the canonical timeline timestamp. The package derives the date grouping, weekday label, and time label from it by default. `date_key`, `date_label`, and `time_label` can still be passed as optional overrides when needed.
+`created_at` is the canonical timeline timestamp. The package derives the date grouping, the weekday label, and the time label from it by default. `date_key`, `date_label`, and `time_label` can still be passed as optional overrides when needed. Tags may be strings or `['label' => ..., 'url' => ...]` arrays.
 
-## Basic Usage
+## Data source precedence
+
+When a component resolves its data, it uses the first of these that is non-empty:
+
+1. `->groups([...])` — pre-grouped items, rendered as-is (date grouping is skipped).
+2. `->items([...])` — flat items, grouped by `date_key` / `created_at` automatically.
+3. `->records([...])` + `->mapItemUsing(fn ($record) => [...])` — an arbitrary collection that the mapper converts into the item shape above.
+
+## Usage
 
 ### In a schema or page
 
@@ -52,6 +71,8 @@ Timeline::make('pulse')
     ->hasMore(fn () => $this->hasMoreItems)
     ->loadMoreAction('loadMoreItems');
 ```
+
+`loadMoreAction('loadMoreItems')` wires the load-more button to a Livewire method on the host component. The button only renders when both a `hasMore` condition and a `loadMoreAction` are set.
 
 ### In an infolist
 
@@ -68,6 +89,33 @@ TimelineEntry::make('history')
     ]);
 ```
 
+### As a widget
+
+```php
+use Devletes\FilamentTimelineView\Widgets\TimelineWidget;
+
+class ActivityTimeline extends TimelineWidget
+{
+    protected bool $isCollapsible = true;
+
+    protected function getTimelineItems(): array
+    {
+        return Activity::latest()->limit($this->visibleItemCount)->get()->all();
+    }
+
+    protected function getTimelineHasMore(): bool
+    {
+        return Activity::count() > $this->visibleItemCount;
+    }
+}
+```
+
+The widget owns its own `loadMore()` Livewire action, so no wiring is needed. Override `getLoadMoreIncrement()` to change the batch size (default `10`) and `getInitialVisibleItemCount()` for the starting window.
+
 ## Versioning
 
-Packagist versions should come from git tags. For prereleases, use semantic version tags such as `v0.1.0-beta.1`.
+Packagist versions come from git tags. For pre-1.0 releases, use semver tags like `v0.1.0` or `v0.1.0-beta.1`.
+
+## License
+
+MIT. See [LICENSE.md](LICENSE.md).

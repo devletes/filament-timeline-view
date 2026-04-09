@@ -52,13 +52,12 @@
 
                     <div class="ftv-group-body @if (count($group['items'])) ftv-group-body-has-line @endif">
                         <div x-show="{{ $isCollapsible ? "(collapsed['{$group['date_key']}'] ?? false)" : 'false' }}" x-cloak>
-                            <button
+                            <div
                                 type="button"
-                                x-on:click="collapsed['{{ $group['date_key'] }}'] = false"
                                 class="ftv-collapsed rounded-full border border-dashed border-gray-300 bg-white text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-200"
                             >
                                 {{ $group['collapsed_summary'] }}
-                            </button>
+                            </div>
                         </div>
 
                         <div x-show="{{ $isCollapsible ? "! (collapsed['{$group['date_key']}'] ?? false)" : 'true' }}" x-cloak>

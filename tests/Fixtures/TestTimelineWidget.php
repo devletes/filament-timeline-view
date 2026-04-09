@@ -27,12 +27,12 @@ class TestTimelineWidget extends TimelineWidget
         return 'Generic timeline';
     }
 
-    protected function getTimelineItems(): array | Collection
+    protected function getTimelineItems(): array|Collection
     {
         return static::$items;
     }
 
-    protected function getTimelineGroups(): array | Collection
+    protected function getTimelineGroups(): array|Collection
     {
         return static::$groups;
     }

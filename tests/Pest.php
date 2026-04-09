@@ -1,3 +1,5 @@
 <?php
 
-uses(\Devletes\FilamentTimelineView\Tests\TestCase::class)->in(__DIR__);
+use Devletes\FilamentTimelineView\Tests\TestCase;
+
+uses(TestCase::class)->in(__DIR__);

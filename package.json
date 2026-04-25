@@ -1,0 +1,9 @@
+{
+    "private": true,
+    "scripts": {
+        "build": "esbuild resources/css/timeline-widget.css --bundle --minify --outfile=dist/timeline-widget.css"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.2"
+    }
+}

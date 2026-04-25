@@ -1,0 +1,16 @@
+.idea/
+.claude/
+vendor/
+node_modules/
+package-lock.json
+composer.lock
+.phpunit.result.cache
+workbench/bootstrap/cache/
+workbench/storage/*.key
+workbench/storage/app/*
+workbench/storage/framework/cache/*
+workbench/storage/framework/sessions/*
+workbench/storage/framework/testing/*
+workbench/storage/framework/views/*
+workbench/storage/logs/*
+

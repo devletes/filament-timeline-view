@@ -37,4 +37,37 @@ class TestCase extends BaseTestCase
             TimelineViewServiceProvider::class,
         ];
     }
+
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+        ]);
+        $app['config']->set('session.driver', 'array');
+        $app['config']->set('cache.default', 'array');
+        $app['config']->set('queue.default', 'sync');
+        $app['config']->set('view.compiled', sys_get_temp_dir().'/devletes-timeline-view-tests');
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        view()->share('errors', new \Illuminate\Support\ViewErrorBag);
+    }
+
+    protected function defineDatabaseMigrations(): void
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
+
+        $this->artisan('migrate', [
+            '--database' => 'testing',
+            '--path' => 'vendor/orchestra/testbench-core/laravel/migrations',
+            '--realpath' => true,
+        ]);
+    }
 }

@@ -1,3 +1,25 @@
+.fi-ta-timeline {
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .fi-ta-timeline {
+        padding: 1rem 1.5rem;
+    }
+}
+
+.ftv-pagination-load-more {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    container-type: normal;
+}
+
+.ftv-load-more-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .ftv-shell {
     display: flex;
     flex-direction: column;
@@ -11,10 +33,7 @@
     --ftv-text-muted: var(--gray-600);
     --ftv-tag-surface: var(--gray-100);
     --ftv-tag-ring: transparent;
-    /* Floating panels (kebab dropdown) — match Filament's fi-dropdown-panel: */
-    /* bg-white / dark:bg-gray-900, items hover bg-gray-50 / dark:bg-white/5. */
-    --ftv-menu-surface: var(--color-white);
-    --ftv-menu-item-hover: var(--gray-50);
+    --ftv-dot-halo: var(--gray-100);
 }
 
 .dark .ftv-shell {
@@ -27,8 +46,7 @@
     --ftv-text-muted: var(--gray-300);
     --ftv-tag-surface: color-mix(in oklab, var(--color-white) 10%, transparent);
     --ftv-tag-ring: transparent;
-    --ftv-menu-surface: var(--gray-900);
-    --ftv-menu-item-hover: color-mix(in oklab, var(--color-white) 5%, transparent);
+    --ftv-dot-halo: var(--ftv-card-surface);
 }
 
 .ftv-root {
@@ -175,7 +193,7 @@
     height: 13px;
     border-radius: 9999px;
     background: var(--ftv-line-color);
-    box-shadow: 0 0 0 4px var(--ftv-card-surface);
+    box-shadow: 0 0 0 4px var(--ftv-dot-halo);
 }
 
 .ftv-item-caret {
@@ -190,6 +208,7 @@
 }
 
 .ftv-card {
+    position: relative;
     border-radius: var(--radius-xl);
     background-color: var(--ftv-card-surface);
     padding: calc(var(--spacing) * 4);
@@ -198,6 +217,10 @@
     --tw-ring-color: var(--ftv-card-ring);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     transition: box-shadow 150ms ease;
+}
+
+.ftv-card-with-actions {
+    padding-right: calc(var(--spacing) * 5);
 }
 
 .ftv-card-layout {
@@ -230,180 +253,10 @@
     flex: 1 1 auto;
 }
 
-.ftv-card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: calc(var(--spacing) * 2);
-}
-
-.ftv-card-header .ftv-card-title {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.ftv-card-header-spacer {
-    flex: 1 1 auto;
-}
-
 .ftv-card-actions {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.ftv-card-actions-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
-    margin: -0.25rem;
-    border-radius: 0.5rem;
-    background: transparent;
-    border: none;
-    color: var(--ftv-text-secondary);
-    cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease;
-}
-
-.ftv-card-actions-toggle:hover,
-.ftv-card-actions-toggle[aria-expanded="true"] {
-    background-color: var(--ftv-tag-surface);
-    color: var(--ftv-text-primary);
-}
-
-.ftv-card-actions-toggle-icon {
-    width: 1.125rem;
-    height: 1.125rem;
-}
-
-.ftv-card-actions-menu {
     position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0;
-    z-index: 50;
-    min-width: 11rem;
-    padding: 0.35rem;
-    border-radius: 0.625rem;
-    background: var(--ftv-menu-surface);
-    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
-    --tw-ring-color: var(--ftv-card-ring);
-    box-shadow: var(--tw-ring-shadow), 0 12px 30px -10px var(--ftv-hover-shadow-color);
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-}
-
-.ftv-card-actions-menu .ftv-card-action {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 0.5rem 0.625rem;
-    border-radius: 0.4rem;
-}
-
-.ftv-card-actions-menu .ftv-card-action:hover {
-    background-color: var(--ftv-menu-item-hover);
-}
-
-.ftv-card-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1;
-    transition: color 150ms ease;
-}
-
-/* Color variants pull shades from the host's Filament color palette. */
-.ftv-card-action--gray {
-    color: var(--ftv-text-secondary);
-}
-.ftv-card-action--gray:hover {
-    color: var(--ftv-text-primary);
-}
-
-.ftv-card-action--primary {
-    color: var(--primary-600);
-}
-.ftv-card-action--primary:hover {
-    color: var(--primary-700);
-}
-.dark .ftv-card-action--primary {
-    color: var(--primary-400);
-}
-.dark .ftv-card-action--primary:hover {
-    color: var(--primary-300);
-}
-
-.ftv-card-action--success {
-    color: var(--success-600);
-}
-.ftv-card-action--success:hover {
-    color: var(--success-700);
-}
-.dark .ftv-card-action--success {
-    color: var(--success-400);
-}
-.dark .ftv-card-action--success:hover {
-    color: var(--success-300);
-}
-
-.ftv-card-action--warning {
-    color: var(--warning-600);
-}
-.ftv-card-action--warning:hover {
-    color: var(--warning-700);
-}
-.dark .ftv-card-action--warning {
-    color: var(--warning-400);
-}
-.dark .ftv-card-action--warning:hover {
-    color: var(--warning-300);
-}
-
-.ftv-card-action--danger {
-    color: var(--danger-600);
-}
-.ftv-card-action--danger:hover {
-    color: var(--danger-700);
-}
-.dark .ftv-card-action--danger {
-    color: var(--danger-400);
-}
-.dark .ftv-card-action--danger:hover {
-    color: var(--danger-300);
-}
-
-.ftv-card-action--info {
-    color: var(--info-600);
-}
-.ftv-card-action--info:hover {
-    color: var(--info-700);
-}
-.dark .ftv-card-action--info {
-    color: var(--info-400);
-}
-.dark .ftv-card-action--info:hover {
-    color: var(--info-300);
-}
-
-.ftv-card-action-icon {
-    width: 1rem;
-    height: 1rem;
-}
-
-.ftv-card-action-label {
-    line-height: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    top: calc(var(--spacing) * 2);
+    right: calc(var(--spacing) * 2);
 }
 
 .ftv-card-title {
@@ -542,7 +395,7 @@ a.ftv-tag:hover {
     border-radius: 9999px;
     padding: 0.75rem 1rem;
     text-align: center;
-    border: 1px dashed var(--ftv-card-ring);
+    border: 1px dashed var(--ftv-line-color);
     background-color: var(--ftv-card-surface);
     color: var(--ftv-text-muted);
     font-size: 0.875rem;
@@ -568,6 +421,10 @@ a.ftv-tag:hover {
         text-align: center;
     }
 
+    .ftv-double-sided .ftv-group-collapsible .ftv-date-button {
+        padding-left: 1.5rem;
+    }
+
     .ftv-double-sided .ftv-group-body {
         padding-left: 0;
     }
@@ -585,6 +442,13 @@ a.ftv-tag:hover {
         display: grid;
         grid-template-columns: 1fr 3rem 1fr;
         align-items: start;
+    }
+
+    .ftv-double-sided .ftv-items-left,
+    .ftv-double-sided .ftv-items-right {
+        display: flex;
+        flex-direction: column;
+        gap: 1.05rem;
     }
 
     .ftv-double-sided .ftv-items-left {

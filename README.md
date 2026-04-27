@@ -366,7 +366,12 @@ Ships with `en` and `de` out of the box.
 
 ## Need something custom?
 
-If you'd like custom features, extensions, or a tailored variant of this package built for your project, reach out at **[salman@devletes.com](mailto:salman@devletes.com)**.
+We build production Filament panels and plugins for teams that want to ship fast without compromising on polish. If you need a custom feature, an extended variant of this package, or a fully bespoke component built for your stack, we can help.
+
+- **Browse the rest of our Filament work:** [filament.devletes.com](https://filament.devletes.com)
+- **Get in touch:** [salman@devletes.com](mailto:salman@devletes.com)
+
+Typical engagements: new Filament plugins, custom resources/widgets/actions, theme + UX work, integrations with your existing services, and one-off tailored forks of our open-source packages.
 
 ## Credits
 

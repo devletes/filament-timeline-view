@@ -7,7 +7,12 @@
     $group = $getGrouping();
     $heading = $getHeading();
     $description = $getDescription();
-    $hasHeader = filled($heading) || filled($description);
+    $headerActions = array_filter(
+        $getHeaderActions(),
+        fn (\Filament\Actions\Action | \Filament\Actions\ActionGroup $action): bool => $action->isVisible(),
+    );
+    $headerActionsPosition = $getHeaderActionsPosition();
+    $hasHeader = filled($heading) || filled($description) || filled($headerActions);
     $hasEmptyState = ($records !== null) && (! count($records));
     $hasPagination = ($records instanceof \Illuminate\Contracts\Pagination\Paginator)
         || ($records instanceof \Illuminate\Contracts\Pagination\CursorPaginator);
@@ -52,15 +57,28 @@
     <div class="fi-ta-main">
         @if ($hasHeader)
             <header class="fi-ta-header-ctn">
-                <div class="fi-ta-header">
-                    <div class="fi-ta-header-text-ctn">
-                        @if (filled($heading))
-                            <h3 class="fi-ta-header-heading">{{ $heading }}</h3>
-                        @endif
-                        @if (filled($description))
-                            <p class="fi-ta-header-description">{{ $description }}</p>
-                        @endif
-                    </div>
+                <div @class([
+                        'fi-ta-header',
+                        'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === \Filament\Tables\Actions\HeaderActionsPosition::Adaptive),
+                    ])>
+                    @if (filled($heading) || filled($description))
+                        <div class="fi-ta-header-text-ctn">
+                            @if (filled($heading))
+                                <h3 class="fi-ta-header-heading">{{ $heading }}</h3>
+                            @endif
+                            @if (filled($description))
+                                <p class="fi-ta-header-description">{{ $description }}</p>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if (filled($headerActions))
+                        <div class="fi-ta-actions fi-align-start fi-wrapped">
+                            @foreach ($headerActions as $action)
+                                {{ $action }}
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </header>
         @endif

@@ -39,6 +39,9 @@
 
     $totalGroups = count($groupedRecords);
     $groupIterationIndex = 0;
+
+    $headingTag = $getHeadingTag();
+    $secondLevelHeadingTag = $heading ? $getHeadingTag(1) : $headingTag;
 @endphp
 
 <div @class([
@@ -63,29 +66,46 @@
         @endif
 
         <div class="fi-ta-content-ctn">
-            <div @class([
-                    'fi-ta-timeline',
-                    'fi-ta-timeline-double' => $isDouble,
-                ])
-                wire:key="{{ $this->getId() }}.table.timeline"
-            >
-                @if ($hasEmptyState)
-                    @php
-                        $emptyHeading = $getEmptyStateHeading() ?: __('filament-timeline-view::timeline.empty_state.heading');
-                        $emptyDescription = $getEmptyStateDescription() ?: __('filament-timeline-view::timeline.empty_state.description');
-                    @endphp
+            @if ($hasEmptyState)
+                @if ($emptyState = $getEmptyState())
+                    {{ $emptyState }}
+                @else
+                    <div class="fi-ta-empty-state">
+                        <div class="fi-ta-empty-state-content">
+                            <div class="fi-ta-empty-state-icon-bg">
+                                {{ \Filament\Support\generate_icon_html($getEmptyStateIcon(), size: \Filament\Support\Enums\IconSize::Large) }}
+                            </div>
 
-                    <div class="ftv-empty-state">
-                        <h4 class="ftv-empty-state-heading">
-                            {{ $emptyHeading }}
-                        </h4>
-                        @if (filled($emptyDescription))
-                            <p class="ftv-empty-state-description">
-                                {{ $emptyDescription }}
-                            </p>
-                        @endif
+                            <{{ $secondLevelHeadingTag }} class="fi-ta-empty-state-heading">
+                                {{ $getEmptyStateHeading() }}
+                            </{{ $secondLevelHeadingTag }}>
+
+                            @if (filled($emptyStateDescription = $getEmptyStateDescription()))
+                                <p class="fi-ta-empty-state-description">
+                                    {{ $emptyStateDescription }}
+                                </p>
+                            @endif
+
+                            @if ($emptyStateActions = array_filter(
+                                     $getEmptyStateActions(),
+                                     fn (\Filament\Actions\Action | \Filament\Actions\ActionGroup $action): bool => $action->isVisible(),
+                                 ))
+                                <div class="fi-ta-actions fi-align-center fi-wrapped">
+                                    @foreach ($emptyStateActions as $action)
+                                        {{ $action }}
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                @elseif ($records !== null)
+                @endif
+            @elseif ($records !== null)
+                <div @class([
+                        'fi-ta-timeline',
+                        'fi-ta-timeline-double' => $isDouble,
+                    ])
+                    wire:key="{{ $this->getId() }}.table.timeline"
+                >
                     <div @class([
                             'ftv-shell',
                             'ftv-double-sided' => $isDouble,
@@ -234,8 +254,8 @@
                             @endforeach
                         </div>
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
 
         @if ($hasMorePages)

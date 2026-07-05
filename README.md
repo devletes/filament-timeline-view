@@ -33,7 +33,9 @@ The package adds two macros to `Filament\Tables\Table`:
 | `->asTimeline()` | Single-column vertical timeline. Cards on the right of the line, dots on the left. |
 | `->asDoubleSidedTimeline()` | Centre line with cards alternating left/right. Collapses to single-column below 768px. |
 
-You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->actions()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
+You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
+
+Setting `->recordUrl(...)` (or `->recordAction(...)`) renders a native Filament "View" link — eye icon plus label — in the card's top-right, **separate from** the kebab actions.
 
 ### Resource list page
 
@@ -312,6 +314,7 @@ Root-level (`.ftv-shell`):
 | `--ftv-card-surface` | Card background (also used as the "halo" around each dot). |
 | `--ftv-card-ring` | Card ring / border colour; also drives the caret colour. |
 | `--ftv-hover-shadow-color` | Card hover shadow. |
+| `--ftv-view-link-color` | Per-card "View" link colour (icon + text). Defaults to `--ftv-text-secondary`. |
 
 Per-group (`.ftv-group-body`):
 

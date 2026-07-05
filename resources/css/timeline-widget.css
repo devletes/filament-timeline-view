@@ -34,6 +34,7 @@
     --ftv-tag-surface: var(--gray-100);
     --ftv-tag-ring: transparent;
     --ftv-dot-halo: var(--gray-100);
+    --ftv-view-link-color: var(--ftv-text-secondary);
 }
 
 .dark .ftv-shell {
@@ -257,6 +258,13 @@
     position: absolute;
     top: calc(var(--spacing) * 2);
     right: calc(var(--spacing) * 2);
+    display: flex;
+    align-items: center;
+}
+
+.ftv-card-actions .ftv-card-view-link.fi-link {
+    color: var(--ftv-view-link-color);
+    margin-right: calc(var(--spacing) * 3);
 }
 
 .ftv-card-title {

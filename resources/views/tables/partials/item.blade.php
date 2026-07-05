@@ -1,8 +1,15 @@
 @php
     use Filament\Actions\ActionGroup;
     use Filament\Actions\BulkAction;
+    use Filament\Actions\View\ActionsIconAlias;
+    use Filament\Support\Facades\FilamentIcon;
+    use Filament\Support\Icons\Heroicon;
 
     $recordKey = $getRecordKey($record);
+    $recordUrl = $getRecordUrl($record);
+    $recordAction = $getRecordAction($record);
+    $hasViewLink = filled($recordUrl) || filled($recordAction);
+    $viewIcon = FilamentIcon::resolve(ActionsIconAlias::VIEW_ACTION) ?? Heroicon::Eye;
     $itemStyle = $order !== null ? 'style="--ftv-order: '.((int) $order).';"' : '';
 
     $rawRecordActions = $getRecordActions();
@@ -59,15 +66,39 @@
     <span class="ftv-item-caret"></span>
     <div @class([
             'ftv-card',
-            'ftv-card-with-actions' => $hasActions,
+            'ftv-card-with-actions' => $hasActions || $hasViewLink,
         ])>
         @foreach ($columnsLayout as $columnsLayoutComponent)
             {{ $columnsLayoutComponent->record($record)->recordKey($recordKey)->renderInLayout() }}
         @endforeach
 
-        @if ($hasActions)
+        @if ($hasActions || $hasViewLink)
             <div class="ftv-card-actions">
-                {{ $cardActionGroup }}
+                @if (filled($recordUrl))
+                    <x-filament::link
+                        class="ftv-card-view-link"
+                        :href="$recordUrl"
+                        :target="$shouldOpenRecordUrlInNewTab($record) ? '_blank' : null"
+                        :icon="$viewIcon"
+                        size="sm"
+                    >
+                        {{ __('filament-actions::view.single.label') }}
+                    </x-filament::link>
+                @elseif (filled($recordAction))
+                    <x-filament::link
+                        class="ftv-card-view-link"
+                        tag="button"
+                        :icon="$viewIcon"
+                        size="sm"
+                        wire:click="mountTableAction('{{ $recordAction }}', '{{ $recordKey }}')"
+                    >
+                        {{ __('filament-actions::view.single.label') }}
+                    </x-filament::link>
+                @endif
+
+                @if ($hasActions)
+                    {{ $cardActionGroup }}
+                @endif
             </div>
         @endif
     </div>

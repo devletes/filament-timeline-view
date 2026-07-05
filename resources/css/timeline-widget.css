@@ -260,11 +260,11 @@
     right: calc(var(--spacing) * 2);
     display: flex;
     align-items: center;
-    gap: calc(var(--spacing) * 0.5);
 }
 
 .ftv-card-actions .ftv-card-view-link.fi-link {
     color: var(--ftv-view-link-color);
+    margin-right: calc(var(--spacing) * 3);
 }
 
 .ftv-card-title {

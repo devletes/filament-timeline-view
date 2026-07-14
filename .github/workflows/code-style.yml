@@ -1,0 +1,24 @@
+name: code-style
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+            - master
+
+jobs:
+    pint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+            - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+              with:
+                  php-version: 8.3
+                  coverage: none
+
+            - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+            - run: vendor/bin/pint --test

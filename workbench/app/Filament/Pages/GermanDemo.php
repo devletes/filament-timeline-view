@@ -3,6 +3,7 @@
 namespace Workbench\App\Filament\Pages;
 
 use Filament\Pages\Dashboard;
+use Illuminate\Contracts\Support\Htmlable;
 use Workbench\App\Filament\Widgets\GermanTimelineWidget;
 
 class GermanDemo extends Dashboard
@@ -25,7 +26,7 @@ class GermanDemo extends Dashboard
         return [GermanTimelineWidget::class];
     }
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string|Htmlable
     {
         app()->setLocale('de');
 

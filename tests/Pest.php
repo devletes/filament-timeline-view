@@ -1,3 +1,5 @@
 <?php
 
-uses(\Devletes\FilamentTimelineView\Tests\TestCase::class)->in('Feature', 'Unit');
+use Devletes\FilamentTimelineView\Tests\TestCase;
+
+uses(TestCase::class)->in('Feature', 'Unit');

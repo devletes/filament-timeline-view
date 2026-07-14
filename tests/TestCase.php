@@ -14,6 +14,7 @@ use Filament\Schemas\SchemasServiceProvider;
 use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
+use Illuminate\Support\ViewErrorBag;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
@@ -57,7 +58,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        view()->share('errors', new \Illuminate\Support\ViewErrorBag);
+        view()->share('errors', new ViewErrorBag);
     }
 
     protected function defineDatabaseMigrations(): void

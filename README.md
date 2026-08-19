@@ -37,6 +37,8 @@ You compose the timeline using Filament's standard table API: `->query()`, `->co
 
 Setting `->recordUrl(...)` (or `->recordAction(...)`) renders a native Filament "View" link — eye icon plus label — in the card's top-right, **separate from** the kebab actions.
 
+> The link is skipped when one of the card's own actions already goes to the same place — same action name for `->recordAction(...)`, same URL for `->recordUrl(...)`. On a resource list page Filament derives both from the table's `view`/`edit` action, so a `ViewAction` in `->recordActions(...)` renders once, in the kebab.
+
 ### Resource list page
 
 ```php

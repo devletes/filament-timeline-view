@@ -22,6 +22,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Workbench\App\Filament\Pages\CustomLayoutDemo;
 use Workbench\App\Filament\Pages\DoubleSidedDemo;
+use Workbench\App\Filament\Pages\FiltersDemo;
 use Workbench\App\Filament\Pages\GermanDemo;
 use Workbench\App\Filament\Pages\SingleSidedDemo;
 use Workbench\App\Filament\Pages\ThemedDemo;
@@ -35,7 +36,8 @@ class AdminPanelProvider extends PanelProvider
         // README screenshot helper. With ?theme=dark the .dark class is applied
         // before initial render; with ?demo=kebab the first card's kebab dropdown
         // is opened on load; with ?demo=collapsed every group except the first is
-        // collapsed. Has zero effect when no query param is present.
+        // collapsed; with ?demo=filters the filters dropdown is opened. Has zero
+        // effect when no query param is present.
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_START,
             fn (): HtmlString => new HtmlString(<<<'HTML'
@@ -65,6 +67,8 @@ HTML)
                         const run = () => {
                             if (demo === 'kebab') {
                                 openDropdown(document.querySelector('.ftv-card-actions .fi-dropdown-trigger'));
+                            } else if (demo === 'filters') {
+                                openDropdown(document.querySelector('.fi-ta-filters-dropdown .fi-dropdown-trigger'));
                             } else if (demo === 'collapsed') {
                                 document.querySelectorAll('.ftv-date-toggle').forEach((b, i) => { if (i >= 1) b.click(); });
                             }
@@ -93,6 +97,7 @@ HTML)
                 SingleSidedDemo::class,
                 DoubleSidedDemo::class,
                 CustomLayoutDemo::class,
+                FiltersDemo::class,
                 ThemedDemo::class,
                 GermanDemo::class,
             ])

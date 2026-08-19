@@ -8,6 +8,13 @@
     }
 }
 
+/* Drops the toolbar's border and padding once its only child, the filters trigger, is hidden. */
+@media (min-width: 64rem) {
+    .ftv-header-toolbar-lg-empty {
+        display: none;
+    }
+}
+
 .ftv-pagination-load-more {
     grid-template-columns: 1fr;
     justify-items: center;

@@ -33,7 +33,7 @@ The package adds two macros to `Filament\Tables\Table`:
 | `->asTimeline()` | Single-column vertical timeline. Cards on the right of the line, dots on the left. |
 | `->asDoubleSidedTimeline()` | Centre line with cards alternating left/right. Collapses to single-column below 768px. |
 
-You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
+You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->filters()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
 
 Setting `->recordUrl(...)` (or `->recordAction(...)`) renders a native Filament "View" link — eye icon plus label — in the card's top-right, **separate from** the kebab actions.
 
@@ -260,6 +260,41 @@ When enabled, each date header gets a chevron toggle that hides/shows the day's 
 | Light | Dark |
 |---|---|
 | ![Collapsed day groups, light mode](docs/images/day-collapse-light.png) | ![Collapsed day groups, dark mode](docs/images/day-collapse-dark.png) |
+
+## Filters
+
+`->filters(...)` works exactly as it does on a normal Filament table — the package renders Filament's own filter UI, so filter types, deferred filters (`->deferFilters(false)`), session persistence, indicators and the reset action all behave the same.
+
+```php
+->filters([
+    SelectFilter::make('category')
+        ->multiple()
+        ->options([
+            'Announcement' => 'Announcement',
+            'Article' => 'Article',
+        ]),
+])
+```
+
+By default the filters sit behind a funnel trigger in the timeline's header toolbar, badged with the number of active filters.
+
+| Light | Dark |
+|---|---|
+| ![Filters dropdown, light mode](docs/images/filters-light.png) | ![Filters dropdown, dark mode](docs/images/filters-dark.png) |
+
+Once a filter is active, an "Active filters" row of removable badges appears between the header and the first date group, along with the remove-all button.
+
+| Light | Dark |
+|---|---|
+| ![Active filter indicators, light mode](docs/images/filter-indicators-light.png) | ![Active filter indicators, dark mode](docs/images/filter-indicators-dark.png) |
+
+Every `FiltersLayout` case is supported — pass one as the second argument to `->filters(...)` to move the form into a modal, a full-width panel, or a sidebar beside the timeline. See [Filament's filter layout docs](https://filamentphp.com/docs/5.x/tables/filters/layout) for the options.
+
+```php
+use Filament\Tables\Enums\FiltersLayout;
+
+->filters([...], FiltersLayout::BeforeContent)
+```
 
 ## Per-card actions
 

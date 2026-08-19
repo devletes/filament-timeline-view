@@ -1,5 +1,9 @@
 @php
     use Carbon\CarbonInterface;
+    use Filament\Support\Enums\Width;
+    use Filament\Support\Facades\FilamentView;
+    use Filament\Tables\Enums\FiltersLayout;
+    use Filament\Tables\View\TablesRenderHook;
     use Illuminate\Support\Carbon;
 
     $records = $isLoaded ? $getRecords() : null;
@@ -12,7 +16,35 @@
         fn (\Filament\Actions\Action | \Filament\Actions\ActionGroup $action): bool => $action->isVisible(),
     );
     $headerActionsPosition = $getHeaderActionsPosition();
-    $hasHeader = filled($heading) || filled($description) || filled($headerActions);
+
+    $hasFilters = $isFilterable();
+    $activeFiltersCount = $getActiveFiltersCount();
+    $filterIndicators = $getFilterIndicators();
+    $filtersApplyAction = $getFiltersApplyAction();
+    $filtersForm = $getFiltersForm();
+    $filtersFormMaxHeight = $getFiltersFormMaxHeight();
+    $filtersFormWidth = $getFiltersFormWidth();
+    $filtersLayout = $getFiltersLayout();
+    $filtersResetActionPosition = $getFiltersResetActionPosition();
+    $filtersTriggerAction = $getFiltersTriggerAction();
+    $hasFiltersDialog = $hasFilters && in_array($filtersLayout, [FiltersLayout::Dropdown, FiltersLayout::Modal]);
+    $hasFiltersAboveContent = $hasFilters && in_array($filtersLayout, [FiltersLayout::AboveContent, FiltersLayout::AboveContentCollapsible]);
+    $hasFiltersBelowContent = $hasFilters && ($filtersLayout === FiltersLayout::BelowContent);
+    $hasFiltersBeforeContent = $hasFilters && in_array($filtersLayout, [FiltersLayout::BeforeContent, FiltersLayout::BeforeContentCollapsible]);
+    $hasFiltersAfterContent = $hasFilters && in_array($filtersLayout, [FiltersLayout::AfterContent, FiltersLayout::AfterContentCollapsible]);
+    $hasCollapsibleFilters = $hasFilters && in_array($filtersLayout, [FiltersLayout::AboveContentCollapsible, FiltersLayout::BeforeContentCollapsible, FiltersLayout::AfterContentCollapsible]);
+    $hasFiltersSidebar = $hasFiltersBeforeContent || $hasFiltersAfterContent;
+    $hasFiltersTrigger = $hasFiltersDialog || $hasFiltersSidebar;
+
+    if (is_string($filtersFormWidth)) {
+        $filtersFormWidth = Width::tryFrom($filtersFormWidth) ?? $filtersFormWidth;
+    }
+
+    $filtersSidebarWidth = $filtersFormWidth ?? Width::ExtraSmall;
+    $filtersSidebarWidthClass = $filtersSidebarWidth instanceof Width ? "fi-width-{$filtersSidebarWidth->value}" : $filtersSidebarWidth;
+
+    $hasHeaderContent = filled($heading) || filled($description) || filled($headerActions) || $hasFiltersAboveContent || $hasFiltersTrigger;
+    $hasHeader = $hasHeaderContent || $hasFilters;
     $hasEmptyState = ($records !== null) && (! count($records));
     $hasPagination = ($records instanceof \Illuminate\Contracts\Pagination\Paginator)
         || ($records instanceof \Illuminate\Contracts\Pagination\CursorPaginator);
@@ -22,7 +54,7 @@
     $currentPerPage = $records instanceof \Illuminate\Contracts\Pagination\Paginator ? (int) $records->perPage() : null;
     $loadMoreNextPerPage = ($currentPerPage !== null) ? ($currentPerPage + $loadMoreStep) : null;
     $hasMorePages = $hasPagination && method_exists($records, 'hasMorePages') && $records->hasMorePages();
-    $hasFooter = $hasMorePages;
+    $hasFooter = $hasMorePages || $hasFiltersBelowContent;
 
     $groupedRecords = [];
 
@@ -53,34 +85,192 @@
         'fi-ta-ctn',
         'fi-ta-ctn-with-header' => $hasHeader,
         'fi-ta-ctn-with-footer' => $hasFooter,
-    ])>
+    ])
+    @if ($hasFiltersSidebar || $hasCollapsibleFilters)
+        x-data="filamentTable({
+                    areGroupsCollapsedByDefault: @js($areGroupsCollapsedByDefault()),
+                    canTrackDeselectedRecords: @js($canTrackDeselectedRecords()),
+                    currentSelectionLivewireProperty: @js($getCurrentSelectionLivewireProperty()),
+                    maxSelectableRecords: @js($getMaxSelectableRecords()),
+                    selectsCurrentPageOnly: @js($selectsCurrentPageOnly()),
+                    $wire,
+                })"
+    @endif
+>
+    @if ($hasFiltersBeforeContent)
+        @include('filament-timeline-view::tables.partials.filters-sidebar', ['position' => 'before'])
+    @endif
+
     <div class="fi-ta-main">
-        @if ($hasHeader)
+        @if ($hasHeaderContent)
             <header class="fi-ta-header-ctn">
-                <div @class([
-                        'fi-ta-header',
-                        'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === \Filament\Tables\Actions\HeaderActionsPosition::Adaptive),
-                    ])>
-                    @if (filled($heading) || filled($description))
-                        <div class="fi-ta-header-text-ctn">
-                            @if (filled($heading))
-                                <h3 class="fi-ta-header-heading">{{ $heading }}</h3>
-                            @endif
-                            @if (filled($description))
-                                <p class="fi-ta-header-description">{{ $description }}</p>
+                @if (filled($heading) || filled($description) || filled($headerActions))
+                    <div @class([
+                            'fi-ta-header',
+                            'fi-ta-header-adaptive-actions-position' => $headerActions && ($headerActionsPosition === \Filament\Tables\Actions\HeaderActionsPosition::Adaptive),
+                        ])>
+                        @if (filled($heading) || filled($description))
+                            <div class="fi-ta-header-text-ctn">
+                                @if (filled($heading))
+                                    <h3 class="fi-ta-header-heading">{{ $heading }}</h3>
+                                @endif
+                                @if (filled($description))
+                                    <p class="fi-ta-header-description">{{ $description }}</p>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if (filled($headerActions))
+                            <div class="fi-ta-actions fi-align-start fi-wrapped">
+                                @foreach ($headerActions as $action)
+                                    {{ $action }}
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($hasFiltersAboveContent)
+                    <div
+                        @if ($hasCollapsibleFilters)
+                            x-bind:class="{ 'fi-open': areFiltersOpen }"
+                        @endif
+                        class="fi-ta-filters-above-content-ctn"
+                    >
+                        <x-filament-tables::filters
+                            :apply-action="$filtersApplyAction"
+                            :form="$filtersForm"
+                            :heading-tag="$secondLevelHeadingTag"
+                            x-cloak
+                            :x-show="$hasCollapsibleFilters ? 'areFiltersOpen' : null"
+                            :reset-action-position="$filtersResetActionPosition"
+                        />
+
+                        @if ($hasCollapsibleFilters)
+                            <span
+                                x-on:click="areFiltersOpen = ! areFiltersOpen"
+                                class="fi-ta-filters-trigger-action-ctn"
+                            >
+                                {{ $filtersTriggerAction->badge($activeFiltersCount) }}
+                            </span>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($hasFiltersTrigger)
+                    <div @class([
+                            'fi-ta-header-toolbar',
+                            // The sidebar layouts hide their trigger from `lg` up, leaving the strip empty.
+                            'ftv-header-toolbar-lg-empty' => $hasFiltersSidebar && (! $hasCollapsibleFilters),
+                        ])>
+                        <div class="fi-ta-actions fi-align-start fi-wrapped"></div>
+
+                        <div>
+                            @if ($hasFiltersDialog)
+                                @if (($filtersLayout === FiltersLayout::Modal) || $filtersTriggerAction->isModalSlideOver())
+                                    <x-filament::modal
+                                        :alignment="$filtersTriggerAction->getModalAlignment()"
+                                        :autofocus="$filtersTriggerAction->isModalAutofocused()"
+                                        :close-button="$filtersTriggerAction->hasModalCloseButton()"
+                                        :close-by-clicking-away="$filtersTriggerAction->isModalClosedByClickingAway()"
+                                        :close-by-escaping="$filtersTriggerAction->isModalClosedByEscaping()"
+                                        :description="$filtersTriggerAction->getModalDescription()"
+                                        :footer-actions="$filtersTriggerAction->getVisibleModalFooterActions()"
+                                        :footer-actions-alignment="$filtersTriggerAction->getModalFooterActionsAlignment()"
+                                        :heading="$filtersTriggerAction->getCustomModalHeading() ?? __('filament-tables::table.filters.heading')"
+                                        :icon="$filtersTriggerAction->getModalIcon()"
+                                        :icon-color="$filtersTriggerAction->getModalIconColor()"
+                                        :slide-over="$filtersTriggerAction->isModalSlideOver()"
+                                        :sticky-footer="$filtersTriggerAction->isModalFooterSticky()"
+                                        :sticky-header="$filtersTriggerAction->isModalHeaderSticky()"
+                                        :width="$filtersFormWidth"
+                                        :wire:key="$this->getId() . '.table.filters'"
+                                        class="fi-ta-filters-modal"
+                                    >
+                                        <x-slot name="trigger">
+                                            {{ $filtersTriggerAction->badge($activeFiltersCount) }}
+                                        </x-slot>
+
+                                        {{ $filtersTriggerAction->getModalContent() }}
+
+                                        {{ $filtersForm }}
+
+                                        {{ $filtersTriggerAction->getModalContentFooter() }}
+                                    </x-filament::modal>
+                                @else
+                                    <x-filament::dropdown
+                                        :max-height="$filtersFormMaxHeight"
+                                        placement="bottom-end"
+                                        shift
+                                        :flip="false"
+                                        :width="$filtersFormWidth ?? Width::ExtraSmall"
+                                        :wire:key="$this->getId() . '.table.filters'"
+                                        class="fi-ta-filters-dropdown"
+                                    >
+                                        <x-slot name="trigger">
+                                            {{ $filtersTriggerAction->badge($activeFiltersCount) }}
+                                        </x-slot>
+
+                                        <x-filament-tables::filters
+                                            :apply-action="$filtersApplyAction"
+                                            :form="$filtersForm"
+                                            :heading-tag="$secondLevelHeadingTag"
+                                            :reset-action-position="$filtersResetActionPosition"
+                                        />
+                                    </x-filament::dropdown>
+                                @endif
+                            @else
+                                <span
+                                    x-ref="filtersTriggerActionContainer"
+                                    x-on:click="toggleFiltersDropdown"
+                                    @class([
+                                        'fi-ta-filters-trigger-action-ctn',
+                                        'lg:fi-hidden' => ! $hasCollapsibleFilters,
+                                    ])
+                                >
+                                    {{ $filtersTriggerAction->badge($activeFiltersCount) }}
+                                </span>
                             @endif
                         </div>
-                    @endif
+                    </div>
+                @endif
+            </header>
+        @endif
 
-                    @if (filled($headerActions))
-                        <div class="fi-ta-actions fi-align-start fi-wrapped">
-                            @foreach ($headerActions as $action)
-                                {{ $action }}
+        @if (filled($filterIndicators))
+            @if (filled($filterIndicatorsView = FilamentView::renderHook(TablesRenderHook::FILTER_INDICATORS, scopes: $this::class, data: ['filterIndicators' => $filterIndicators])))
+                {{ $filterIndicatorsView }}
+            @else
+                <div class="fi-ta-filter-indicators">
+                    <div>
+                        <span class="fi-ta-filter-indicators-label">
+                            {{ __('filament-tables::table.filters.indicator') }}
+                        </span>
+
+                        <div class="fi-ta-filter-indicators-badges-ctn">
+                            @foreach ($filterIndicators as $indicator)
+                                <x-filament::badge :color="$indicator->getColor()">
+                                    {{ $indicator->getLabel() }}
+
+                                    @if ($indicator->isRemovable())
+                                        <x-slot
+                                            name="deleteButton"
+                                            :label="__('filament-tables::table.filters.actions.remove.label')"
+                                            :wire:click="$indicator->getRemoveLivewireClickHandler()"
+                                            wire:loading.attr="disabled"
+                                            wire:target="removeTableFilter"
+                                        ></x-slot>
+                                    @endif
+                                </x-filament::badge>
                             @endforeach
                         </div>
+                    </div>
+
+                    @if (collect($filterIndicators)->contains(fn (\Filament\Tables\Filters\Indicator $indicator): bool => $indicator->isRemovable()))
+                        {{ $getFiltersRemoveAllAction() }}
                     @endif
                 </div>
-            </header>
+            @endif
         @endif
 
         <div class="fi-ta-content-ctn">
@@ -299,7 +489,21 @@
                 </x-filament::button>
             </nav>
         @endif
+
+        @if ($hasFiltersBelowContent)
+            <x-filament-tables::filters
+                :apply-action="$filtersApplyAction"
+                :form="$filtersForm"
+                :heading-tag="$secondLevelHeadingTag"
+                class="fi-ta-filters-below-content"
+                :reset-action-position="$filtersResetActionPosition"
+            />
+        @endif
     </div>
+
+    @if ($hasFiltersAfterContent)
+        @include('filament-timeline-view::tables.partials.filters-sidebar', ['position' => 'after'])
+    @endif
 
     <x-filament-actions::modals />
 </div>

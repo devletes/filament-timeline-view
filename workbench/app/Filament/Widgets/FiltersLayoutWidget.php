@@ -3,15 +3,14 @@
 namespace Workbench\App\Filament\Widgets;
 
 use Devletes\FilamentTimelineView\Tables\Columns\TimelineEntry;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Workbench\App\Models\Pulse;
 
-class CompanyPulseWidget extends TableWidget
+class FiltersLayoutWidget extends TableWidget
 {
     protected static bool $isLazy = false;
 
@@ -19,23 +18,25 @@ class CompanyPulseWidget extends TableWidget
 
     public function table(Table $table): Table
     {
+        $layout = $this->resolveLayout();
+
         return $table
             ->heading('Company Pulse')
-            ->description('Latest updates across the company.')
+            ->description(filled(request()->query('layout'))
+                ? str($layout->name)->headline()->toString().' filters layout'
+                : 'Latest updates across the company.')
             ->query(fn () => Pulse::query()->with('author'))
             ->defaultSort('published_at', 'desc')
             ->columns([
                 TimelineEntry::make()
                     ->title('title')
                     ->content('body')
-                    ->image('hero_image_url')
                     ->author('author.name', fn () => '/avatar.png')
                     ->time('published_at'),
             ])
             ->defaultGroup(
                 Group::make('published_at')
                     ->date()
-                    ->collapsible()
                     ->orderQueryUsing(fn ($query) => $query->orderByDesc('published_at')),
             )
             ->filters([
@@ -46,32 +47,26 @@ class CompanyPulseWidget extends TableWidget
                         ->distinct()
                         ->orderBy('category')
                         ->pluck('category', 'category')
-                        ->all()),
-            ])
-            ->recordActions([
-                Action::make('view')
-                    ->icon('heroicon-m-eye')
-                    ->action(fn (Pulse $record) => Notification::make()
-                        ->title("Viewing «{$record->title}»")
-                        ->success()
-                        ->send()),
-                Action::make('pin')
-                    ->icon('heroicon-m-bookmark')
-                    ->color('primary')
-                    ->action(fn (Pulse $record) => Notification::make()
-                        ->title("Pinned «{$record->title}»")
-                        ->success()
-                        ->send()),
-                Action::make('delete')
-                    ->icon('heroicon-m-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(fn (Pulse $record) => Notification::make()
-                        ->title("Deleted «{$record->title}»")
-                        ->danger()
-                        ->send()),
-            ])
-            ->paginated([5])
+                        ->all())
+                    // README screenshot helper: ?category=Announcement,Article renders the indicator row.
+                    ->default(array_filter(explode(',', (string) request()->query('category')))),
+            ], $layout)
             ->asTimeline();
+    }
+
+    protected function resolveLayout(): FiltersLayout
+    {
+        return match (request()->query('layout')) {
+            'modal' => FiltersLayout::Modal,
+            'above' => FiltersLayout::AboveContent,
+            'above-collapsible' => FiltersLayout::AboveContentCollapsible,
+            'below' => FiltersLayout::BelowContent,
+            'before' => FiltersLayout::BeforeContent,
+            'before-collapsible' => FiltersLayout::BeforeContentCollapsible,
+            'after' => FiltersLayout::AfterContent,
+            'after-collapsible' => FiltersLayout::AfterContentCollapsible,
+            'hidden' => FiltersLayout::Hidden,
+            default => FiltersLayout::Dropdown,
+        };
     }
 }

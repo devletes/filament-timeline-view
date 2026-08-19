@@ -79,9 +79,10 @@ class ListPulses extends ListRecords
 }
 ```
 
-| Light | Dark |
-|---|---|
-| ![Single-sided timeline, light mode](docs/images/single-sided-light.png) | ![Single-sided timeline, dark mode](docs/images/single-sided-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/single-sided-light.png" alt="Single-sided timeline, light mode"></td>
+<td width="50%"><img src="docs/images/single-sided-dark.png" alt="Single-sided timeline, dark mode"></td>
+</tr></table>
 
 ### Dashboard widget
 
@@ -150,9 +151,10 @@ return $table
     ->asDoubleSidedTimeline();
 ```
 
-| Light | Dark |
-|---|---|
-| ![Double-sided timeline, light mode](docs/images/double-sided-light.png) | ![Double-sided timeline, dark mode](docs/images/double-sided-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/double-sided-light.png" alt="Double-sided timeline, light mode"></td>
+<td width="50%"><img src="docs/images/double-sided-dark.png" alt="Double-sided timeline, dark mode"></td>
+</tr></table>
 
 ## The `TimelineEntry` column
 
@@ -168,9 +170,10 @@ return $table
 | `->author($name, $avatar = null)` | A small avatar + name in the card footer. |
 | `->time($field, $format = 'g:i A')` | A small time stamp in the footer. Carbon-parsed. |
 
-| Light | Dark |
-|---|---|
-| ![A single TimelineEntry card, light mode](docs/images/timeline-entry-card-light.png) | ![A single TimelineEntry card, dark mode](docs/images/timeline-entry-card-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/timeline-entry-card-light.png" alt="A single TimelineEntry card, light mode"></td>
+<td width="50%"><img src="docs/images/timeline-entry-card-dark.png" alt="A single TimelineEntry card, dark mode"></td>
+</tr></table>
 
 Each setter accepts either a **string field path** (resolved via `data_get($record, $path)`) or a **`Closure`** receiving the record:
 
@@ -215,9 +218,10 @@ use Filament\Tables\Columns\TextColumn;
 ])
 ```
 
-| Light | Dark |
-|---|---|
-| ![Custom Stack/Split layout, light mode](docs/images/custom-layout-light.png) | ![Custom Stack/Split layout, dark mode](docs/images/custom-layout-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/custom-layout-light.png" alt="Custom Stack/Split layout, light mode"></td>
+<td width="50%"><img src="docs/images/custom-layout-dark.png" alt="Custom Stack/Split layout, dark mode"></td>
+</tr></table>
 
 ## Date grouping
 
@@ -243,9 +247,10 @@ Pass the `Group` instance straight to `->defaultGroup(...)` — no need for a se
 > )
 > ```
 
-| Light | Dark |
-|---|---|
-| ![Date headers, light mode](docs/images/date-grouping-light.png) | ![Date headers, dark mode](docs/images/date-grouping-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/date-grouping-light.png" alt="Date headers, light mode"></td>
+<td width="50%"><img src="docs/images/date-grouping-dark.png" alt="Date headers, dark mode"></td>
+</tr></table>
 
 ## Day-group collapse (opt-in)
 
@@ -257,9 +262,10 @@ Day groups are **not collapsible by default**. To make them collapsible, call `-
 
 When enabled, each date header gets a chevron toggle that hides/shows the day's cards via Alpine.js (no Livewire round-trip). Collapsed groups show a translated "N posts hidden" pill (`collapsed_summary` translation key) in place of the cards.
 
-| Light | Dark |
-|---|---|
-| ![Collapsed day groups, light mode](docs/images/day-collapse-light.png) | ![Collapsed day groups, dark mode](docs/images/day-collapse-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/day-collapse-light.png" alt="Collapsed day groups, light mode"></td>
+<td width="50%"><img src="docs/images/day-collapse-dark.png" alt="Collapsed day groups, dark mode"></td>
+</tr></table>
 
 ## Filters
 
@@ -278,15 +284,17 @@ When enabled, each date header gets a chevron toggle that hides/shows the day's 
 
 By default the filters sit behind a funnel trigger in the timeline's header toolbar, badged with the number of active filters.
 
-| Light | Dark |
-|---|---|
-| ![Filters dropdown, light mode](docs/images/filters-light.png) | ![Filters dropdown, dark mode](docs/images/filters-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/filters-light.png" alt="Filters dropdown, light mode"></td>
+<td width="50%"><img src="docs/images/filters-dark.png" alt="Filters dropdown, dark mode"></td>
+</tr></table>
 
 Once a filter is active, an "Active filters" row of removable badges appears between the header and the first date group, along with the remove-all button.
 
-| Light | Dark |
-|---|---|
-| ![Active filter indicators, light mode](docs/images/filter-indicators-light.png) | ![Active filter indicators, dark mode](docs/images/filter-indicators-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/filter-indicators-light.png" alt="Active filter indicators, light mode"></td>
+<td width="50%"><img src="docs/images/filter-indicators-dark.png" alt="Active filter indicators, dark mode"></td>
+</tr></table>
 
 Every `FiltersLayout` case is supported — pass one as the second argument to `->filters(...)` to move the form into a modal, a full-width panel, or a sidebar beside the timeline. See [Filament's filter layout docs](https://filamentphp.com/docs/5.x/tables/filters/layout) for the options.
 
@@ -304,9 +312,10 @@ use Filament\Tables\Enums\FiltersLayout;
 ->searchable(['title', 'body'])
 ```
 
-| Light | Dark |
-|---|---|
-| ![Search field, light mode](docs/images/search-light.png) | ![Search field, dark mode](docs/images/search-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/search-light.png" alt="Search field, light mode"></td>
+<td width="50%"><img src="docs/images/search-dark.png" alt="Search field, dark mode"></td>
+</tr></table>
 
 **Name the columns on the table**, as above, rather than marking a column `->searchable()`. Both work, but the timeline renders every column you pass to `->columns()` inside the card, so a `TextColumn` added purely to enable search shows up as stray text under the entry.
 
@@ -346,9 +355,10 @@ Either way the visual is one kebab. Hidden actions (`->hidden()` / `->visible()`
 
 Action click handlers use Filament's standard `mountAction(...)` flow, so `->action(fn ($record) => ...)`, modals, notifications, and forms all work as they would on any normal table.
 
-| Light | Dark |
-|---|---|
-| ![Open kebab dropdown, light mode](docs/images/per-card-actions-light.png) | ![Open kebab dropdown, dark mode](docs/images/per-card-actions-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/per-card-actions-light.png" alt="Open kebab dropdown, light mode"></td>
+<td width="50%"><img src="docs/images/per-card-actions-dark.png" alt="Open kebab dropdown, dark mode"></td>
+</tr></table>
 
 ## Pagination → Load more
 
@@ -364,9 +374,10 @@ The button hides automatically when the underlying paginator's `hasMorePages()` 
 
 If you want vanilla page-link pagination, leave `->paginated(...)` set but skip the timeline macro — you'll get Filament's default rendering.
 
-| Light | Dark |
-|---|---|
-| ![Load more button, light mode](docs/images/load-more-light.png) | ![Load more button, dark mode](docs/images/load-more-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/load-more-light.png" alt="Load more button, light mode"></td>
+<td width="50%"><img src="docs/images/load-more-dark.png" alt="Load more button, dark mode"></td>
+</tr></table>
 
 ## Theming
 
@@ -403,9 +414,10 @@ To override per panel, add a rule to your panel's theme CSS:
 }
 ```
 
-| Light | Dark |
-|---|---|
-| ![Themed timeline, light mode](docs/images/themed-light.png) | ![Themed timeline, dark mode](docs/images/themed-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/themed-light.png" alt="Themed timeline, light mode"></td>
+<td width="50%"><img src="docs/images/themed-dark.png" alt="Themed timeline, dark mode"></td>
+</tr></table>
 
 ## Translations
 
@@ -429,9 +441,10 @@ Keys:
 
 Ships with `en` and `de` out of the box.
 
-| Light | Dark |
-|---|---|
-| ![German locale timeline, light mode](docs/images/german-light.png) | ![German locale timeline, dark mode](docs/images/german-dark.png) |
+<table><tr>
+<td width="50%"><img src="docs/images/german-light.png" alt="German locale timeline, light mode"></td>
+<td width="50%"><img src="docs/images/german-dark.png" alt="German locale timeline, dark mode"></td>
+</tr></table>
 
 ## Need something custom?
 
@@ -441,6 +454,17 @@ We build production Filament panels and plugins for teams that want to ship fast
 - **Get in touch:** [salman@devletes.com](mailto:salman@devletes.com)
 
 Typical engagements: new Filament plugins, custom resources/widgets/actions, theme + UX work, integrations with your existing services, and one-off tailored forks of our open-source packages.
+
+## Have you seen our Orbit theme?
+
+Orbit is our dark-first theme for Filament 5. Every panel surface is restyled — sidebar, topbar, forms, tables, modals, notifications.
+
+<table><tr>
+<td width="50%"><img src="https://filament.devletes.com/screenshots/orbit/resource_detail_with_hero_card_light.png" alt="Orbit theme, light mode"></td>
+<td width="50%"><img src="https://filament.devletes.com/screenshots/orbit/resource_detail_with_hero_card.png" alt="Orbit theme, dark mode"></td>
+</tr></table>
+
+**[Check it out here](https://filament.devletes.com/orbit) →**
 
 ## Credits
 

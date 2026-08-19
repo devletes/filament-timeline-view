@@ -18,6 +18,7 @@ use Illuminate\Support\ViewErrorBag;
 use Livewire\LivewireServiceProvider;
 use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Workbench\App\Providers\Filament\AdminPanelProvider;
 
 class TestCase extends BaseTestCase
 {
@@ -37,6 +38,7 @@ class TestCase extends BaseTestCase
             WidgetsServiceProvider::class,
             FilamentServiceProvider::class,
             TimelineViewServiceProvider::class,
+            AdminPanelProvider::class,
         ];
     }
 

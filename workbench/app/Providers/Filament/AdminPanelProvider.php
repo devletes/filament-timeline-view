@@ -25,6 +25,7 @@ use Workbench\App\Filament\Pages\DoubleSidedDemo;
 use Workbench\App\Filament\Pages\GermanDemo;
 use Workbench\App\Filament\Pages\SingleSidedDemo;
 use Workbench\App\Filament\Pages\ThemedDemo;
+use Workbench\App\Filament\Resources\PulseResource;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -87,6 +88,9 @@ HTML)
             ->darkMode(true)
             ->colors([
                 'primary' => Color::Blue,
+            ])
+            ->resources([
+                PulseResource::class,
             ])
             ->pages([
                 Dashboard::class,

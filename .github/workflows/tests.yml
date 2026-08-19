@@ -18,6 +18,9 @@ jobs:
                 php:
                     - "8.2"
                     - "8.3"
+                dependency-versions:
+                    - "lowest"
+                    - "highest"
 
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,6 +31,8 @@ jobs:
                   coverage: none
 
             - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+              with:
+                  dependency-versions: ${{ matrix.dependency-versions }}
 
             - run: composer validate --strict
             - run: composer test

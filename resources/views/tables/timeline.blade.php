@@ -1,7 +1,9 @@
 @php
     use Carbon\CarbonInterface;
     use Filament\Support\Enums\Width;
+    use Filament\Support\Facades\FilamentView;
     use Filament\Tables\Enums\FiltersLayout;
+    use Filament\Tables\View\TablesRenderHook;
     use Illuminate\Support\Carbon;
 
     $records = $isLoaded ? $getRecords() : null;
@@ -236,35 +238,39 @@
         @endif
 
         @if (filled($filterIndicators))
-            <div class="fi-ta-filter-indicators">
-                <div>
-                    <span class="fi-ta-filter-indicators-label">
-                        {{ __('filament-tables::table.filters.indicator') }}
-                    </span>
+            @if (filled($filterIndicatorsView = FilamentView::renderHook(TablesRenderHook::FILTER_INDICATORS, scopes: $this::class, data: ['filterIndicators' => $filterIndicators])))
+                {{ $filterIndicatorsView }}
+            @else
+                <div class="fi-ta-filter-indicators">
+                    <div>
+                        <span class="fi-ta-filter-indicators-label">
+                            {{ __('filament-tables::table.filters.indicator') }}
+                        </span>
 
-                    <div class="fi-ta-filter-indicators-badges-ctn">
-                        @foreach ($filterIndicators as $indicator)
-                            <x-filament::badge :color="$indicator->getColor()">
-                                {{ $indicator->getLabel() }}
+                        <div class="fi-ta-filter-indicators-badges-ctn">
+                            @foreach ($filterIndicators as $indicator)
+                                <x-filament::badge :color="$indicator->getColor()">
+                                    {{ $indicator->getLabel() }}
 
-                                @if ($indicator->isRemovable())
-                                    <x-slot
-                                        name="deleteButton"
-                                        :label="__('filament-tables::table.filters.actions.remove.label')"
-                                        :wire:click="$indicator->getRemoveLivewireClickHandler()"
-                                        wire:loading.attr="disabled"
-                                        wire:target="removeTableFilter"
-                                    ></x-slot>
-                                @endif
-                            </x-filament::badge>
-                        @endforeach
+                                    @if ($indicator->isRemovable())
+                                        <x-slot
+                                            name="deleteButton"
+                                            :label="__('filament-tables::table.filters.actions.remove.label')"
+                                            :wire:click="$indicator->getRemoveLivewireClickHandler()"
+                                            wire:loading.attr="disabled"
+                                            wire:target="removeTableFilter"
+                                        ></x-slot>
+                                    @endif
+                                </x-filament::badge>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                @if (collect($filterIndicators)->contains(fn (\Filament\Tables\Filters\Indicator $indicator): bool => $indicator->isRemovable()))
-                    {{ $getFiltersRemoveAllAction() }}
-                @endif
-            </div>
+                    @if (collect($filterIndicators)->contains(fn (\Filament\Tables\Filters\Indicator $indicator): bool => $indicator->isRemovable()))
+                        {{ $getFiltersRemoveAllAction() }}
+                    @endif
+                </div>
+            @endif
         @endif
 
         <div class="fi-ta-content-ctn">

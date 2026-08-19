@@ -34,7 +34,7 @@ class FiltersLayoutWidget extends TableWidget
                     ->author('author.name', fn () => '/avatar.png')
                     ->time('published_at'),
             ])
-            ->searchable(filled(request()->query('search')) ? ['title', 'body'] : false)
+            ->searchable(request()->query('search') === '0' ? false : ['title', 'body'])
             ->defaultGroup(
                 Group::make('published_at')
                     ->date()

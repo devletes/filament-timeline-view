@@ -15,9 +15,12 @@ class StubTimelineFiltersWidget extends TableWidget
 
     public string $layout = 'dropdown';
 
-    public function mount(string $layout = 'dropdown'): void
+    public bool $searchable = false;
+
+    public function mount(string $layout = 'dropdown', bool $searchable = false): void
     {
         $this->layout = $layout;
+        $this->searchable = $searchable;
     }
 
     public function table(Table $table): Table
@@ -27,6 +30,7 @@ class StubTimelineFiltersWidget extends TableWidget
             ->columns([
                 TimelineEntry::make()->title('title'),
             ])
+            ->searchable($this->searchable ? ['title'] : false)
             ->filters([
                 SelectFilter::make('category')
                     ->options([

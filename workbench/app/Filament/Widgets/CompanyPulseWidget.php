@@ -38,6 +38,7 @@ class CompanyPulseWidget extends TableWidget
                     ->collapsible()
                     ->orderQueryUsing(fn ($query) => $query->orderByDesc('published_at')),
             )
+            ->searchable(['title', 'body'])
             ->filters([
                 SelectFilter::make('category')
                     ->multiple()

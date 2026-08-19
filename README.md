@@ -33,7 +33,7 @@ The package adds two macros to `Filament\Tables\Table`:
 | `->asTimeline()` | Single-column vertical timeline. Cards on the right of the line, dots on the left. |
 | `->asDoubleSidedTimeline()` | Centre line with cards alternating left/right. Collapses to single-column below 768px. |
 
-You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->filters()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
+You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->filters()`, `->searchable()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
 
 Setting `->recordUrl(...)` (or `->recordAction(...)`) renders a native Filament "View" link — eye icon plus label — in the card's top-right, **separate from** the kebab actions.
 
@@ -295,6 +295,35 @@ use Filament\Tables\Enums\FiltersLayout;
 
 ->filters([...], FiltersLayout::BeforeContent)
 ```
+
+## Search
+
+`->searchable([...])` puts a search field in the header toolbar, sharing the row with the filters trigger if you have one.
+
+```php
+->searchable(['title', 'body'])
+```
+
+| Light | Dark |
+|---|---|
+| ![Search field, light mode](docs/images/search-light.png) | ![Search field, dark mode](docs/images/search-dark.png) |
+
+**Name the columns on the table**, as above, rather than marking a column `->searchable()`. Both work, but the timeline renders every column you pass to `->columns()` inside the card, so a `TextColumn` added purely to enable search shows up as stray text under the entry.
+
+Filament's search options pass through unchanged:
+
+```php
+->searchable(['title', 'body'])
+->searchPlaceholder('Search updates')
+->searchDebounce('700ms')
+->searchOnBlur()
+```
+
+`->searchUsing(fn (Builder $query, string $search) => ...)` works too, if you need to control the query.
+
+Searching applies before grouping, so day headers that end up empty disappear along with their cards, and the empty state shows when nothing matches.
+
+> Per-column search (`->searchable(isIndividual: true)` on a column) is **not supported** — a timeline has no column headers to render the per-column inputs under. Global search only.
 
 ## Per-card actions
 

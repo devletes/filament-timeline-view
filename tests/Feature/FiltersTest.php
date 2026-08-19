@@ -91,3 +91,9 @@ it('keeps the toolbar for layouts whose trigger stays visible', function (string
         ->assertSeeHtml('fi-ta-header-toolbar')
         ->assertDontSeeHtml('ftv-header-toolbar-lg-empty');
 })->with(['dropdown', 'modal', 'before-collapsible', 'after-collapsible']);
+
+it('keeps the toolbar at every width when a sidebar layout also has search', function (string $layout) {
+    Livewire::test(StubTimelineFiltersWidget::class, ['layout' => $layout, 'searchable' => true])
+        ->assertSeeHtml('fi-ta-search-field')
+        ->assertDontSeeHtml('ftv-header-toolbar-lg-empty');
+})->with(['before', 'after']);

@@ -1,40 +1,52 @@
 <?php
 
-use Devletes\FilamentTimelineView\Tables\Columns\TimelineEntry;
-use Filament\Tables\Table;
-use Filament\Widgets\TableWidget;
+use Devletes\FilamentTimelineView\Tests\Fixtures\StubTimelineFiltersWidget;
+use Devletes\FilamentTimelineView\Tests\Fixtures\StubTimelineSearchWidget;
 use Livewire\Livewire;
 use Workbench\App\Models\Pulse;
 
-class StubSearchableTimelineWidget extends TableWidget
-{
-    protected static bool $isLazy = false;
-
-    public function table(Table $table): Table
-    {
-        return $table
-            ->query(fn () => Pulse::query())
-            ->columns([
-                TimelineEntry::make()->title('title'),
-            ])
-            ->searchable()
-            ->asTimeline();
-    }
-}
-
 beforeEach(function () {
-    Pulse::create(['title' => 'Findable', 'body' => 'Body.', 'published_at' => now()]);
+    Pulse::create(['title' => 'Quarterly review', 'body' => 'Numbers are in.', 'category' => 'news', 'published_at' => now()]);
+    Pulse::create(['title' => 'New coffee machine', 'body' => 'In the kitchen.', 'category' => 'news', 'published_at' => now()]);
 });
 
-it('renders without error when the table is searchable', function () {
-    Livewire::test(StubSearchableTimelineWidget::class)
-        ->assertOk()
-        ->assertSee('Findable');
+it('renders a search field in the header toolbar when the table is searchable', function () {
+    Livewire::test(StubTimelineSearchWidget::class)
+        ->assertSeeHtml('fi-ta-header-toolbar')
+        ->assertSeeHtml('fi-ta-search-field');
 });
 
-// The timeline replaces the whole table view and does not render a search field
-// yet. Asserted so the day one is added, this test is the reminder to update it.
-it('does not yet render a search field', function () {
-    Livewire::test(StubSearchableTimelineWidget::class)
+it('narrows the rendered records to the search term', function () {
+    Livewire::test(StubTimelineSearchWidget::class)
+        ->assertSee('Quarterly review')
+        ->assertSee('New coffee machine')
+        ->set('tableSearch', 'coffee')
+        ->assertSee('New coffee machine')
+        ->assertDontSee('Quarterly review');
+});
+
+it('searches only the columns named in searchable(), not every column', function () {
+    Livewire::test(StubTimelineSearchWidget::class)
+        ->set('tableSearch', 'kitchen')
+        ->assertDontSee('New coffee machine')
+        ->assertDontSee('Quarterly review');
+});
+
+it('shows the empty state when nothing matches', function () {
+    Livewire::test(StubTimelineSearchWidget::class)
+        ->set('tableSearch', 'nothing matches this')
+        ->assertSeeHtml('fi-ta-empty-state')
+        ->assertSeeHtml('fi-ta-search-field');
+});
+
+it('renders no search field when the table is not searchable', function () {
+    Livewire::test(StubTimelineFiltersWidget::class)
         ->assertDontSeeHtml('fi-ta-search-field');
+});
+
+it('renders no filters trigger when the table is only searchable', function () {
+    Livewire::test(StubTimelineSearchWidget::class)
+        ->assertSeeHtml('fi-ta-search-field')
+        ->assertDontSeeHtml('fi-ta-filters-trigger-action-ctn')
+        ->assertDontSeeHtml('fi-ta-filters-dropdown');
 });

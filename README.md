@@ -33,7 +33,7 @@ The package adds two macros to `Filament\Tables\Table`:
 | `->asTimeline()` | Single-column vertical timeline. Cards on the right of the line, dots on the left. |
 | `->asDoubleSidedTimeline()` | Centre line with cards alternating left/right. Collapses to single-column below 768px. |
 
-You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->filters()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
+You compose the timeline using Filament's standard table API: `->query()`, `->columns()`, `->groups()`, `->filters()`, `->searchable()`, `->recordActions()`, `->recordUrl()`, `->paginated()`. Just swap `->columns()` for `TimelineEntry::make()` and call one of the timeline macros at the end.
 
 Setting `->recordUrl(...)` (or `->recordAction(...)`) renders a native Filament "View" link — eye icon plus label — in the card's top-right, **separate from** the kebab actions.
 
@@ -293,6 +293,22 @@ use Filament\Tables\Enums\FiltersLayout;
 
 ->filters([...], FiltersLayout::BeforeContent)
 ```
+
+## Search
+
+`->searchable([...])` puts a search field in the header toolbar, beside the filters trigger if you have one.
+
+```php
+->searchable(['title', 'body'])
+```
+
+| Light | Dark |
+|---|---|
+| ![Search field, light mode](docs/images/search-light.png) | ![Search field, dark mode](docs/images/search-dark.png) |
+
+Name the database columns to search directly on the table, as above. The usual Filament approach of marking a `TextColumn` as `->searchable()` also works, but every column you add to `->columns()` is rendered inside the card, so a column added purely to enable search would show up as stray text under the entry.
+
+Per-column search (`->searchable(isIndividual: true)`) has nowhere to render on a timeline and is not supported.
 
 ## Per-card actions
 

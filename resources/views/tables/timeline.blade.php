@@ -17,6 +17,8 @@
     );
     $headerActionsPosition = $getHeaderActionsPosition();
 
+    $isGlobalSearchVisible = $isSearchable();
+
     $hasFilters = $isFilterable();
     $activeFiltersCount = $getActiveFiltersCount();
     $filterIndicators = $getFilterIndicators();
@@ -43,7 +45,7 @@
     $filtersSidebarWidth = $filtersFormWidth ?? Width::ExtraSmall;
     $filtersSidebarWidthClass = $filtersSidebarWidth instanceof Width ? "fi-width-{$filtersSidebarWidth->value}" : $filtersSidebarWidth;
 
-    $hasHeaderContent = filled($heading) || filled($description) || filled($headerActions) || $hasFiltersAboveContent || $hasFiltersTrigger;
+    $hasHeaderContent = filled($heading) || filled($description) || filled($headerActions) || $hasFiltersAboveContent || $hasFiltersTrigger || $isGlobalSearchVisible;
     $hasHeader = $hasHeaderContent || $hasFilters;
     $hasEmptyState = ($records !== null) && (! count($records));
     $hasPagination = ($records instanceof \Illuminate\Contracts\Pagination\Paginator)
@@ -157,15 +159,23 @@
                     </div>
                 @endif
 
-                @if ($hasFiltersTrigger)
+                @if ($hasFiltersTrigger || $isGlobalSearchVisible)
                     <div @class([
                             'fi-ta-header-toolbar',
                             // The sidebar layouts hide their trigger from `lg` up, leaving the strip empty.
-                            'ftv-header-toolbar-lg-empty' => $hasFiltersSidebar && (! $hasCollapsibleFilters),
+                            'ftv-header-toolbar-lg-empty' => $hasFiltersSidebar && (! $hasCollapsibleFilters) && (! $isGlobalSearchVisible),
                         ])>
                         <div class="fi-ta-actions fi-align-start fi-wrapped"></div>
 
                         <div>
+                            @if ($isGlobalSearchVisible)
+                                <x-filament-tables::search-field
+                                    :debounce="$getSearchDebounce()"
+                                    :on-blur="$isSearchOnBlur()"
+                                    :placeholder="$getSearchPlaceholder()"
+                                />
+                            @endif
+
                             @if ($hasFiltersDialog)
                                 @if (($filtersLayout === FiltersLayout::Modal) || $filtersTriggerAction->isModalSlideOver())
                                     <x-filament::modal
@@ -219,7 +229,7 @@
                                         />
                                     </x-filament::dropdown>
                                 @endif
-                            @else
+                            @elseif ($hasFiltersSidebar)
                                 <span
                                     x-ref="filtersTriggerActionContainer"
                                     x-on:click="toggleFiltersDropdown"

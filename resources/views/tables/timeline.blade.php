@@ -37,6 +37,8 @@
     $hasCollapsibleFilters = $hasFilters && in_array($filtersLayout, [FiltersLayout::AboveContentCollapsible, FiltersLayout::BeforeContentCollapsible, FiltersLayout::AfterContentCollapsible]);
     $hasFiltersSidebar = $hasFiltersBeforeContent || $hasFiltersAfterContent;
     $hasFiltersTrigger = $hasFiltersDialog || $hasFiltersSidebar;
+    // Sidebar layouts hide their trigger from `lg` up, leaving the toolbar empty unless search fills it.
+    $hasToolbarEmptyOnLargeScreens = $hasFiltersSidebar && (! $hasCollapsibleFilters) && (! $isGlobalSearchVisible);
 
     if (is_string($filtersFormWidth)) {
         $filtersFormWidth = Width::tryFrom($filtersFormWidth) ?? $filtersFormWidth;
@@ -162,8 +164,7 @@
                 @if ($hasFiltersTrigger || $isGlobalSearchVisible)
                     <div @class([
                             'fi-ta-header-toolbar',
-                            // The sidebar layouts hide their trigger from `lg` up, leaving the strip empty.
-                            'ftv-header-toolbar-lg-empty' => $hasFiltersSidebar && (! $hasCollapsibleFilters) && (! $isGlobalSearchVisible),
+                            'ftv-header-toolbar-lg-empty' => $hasToolbarEmptyOnLargeScreens,
                         ])>
                         <div class="fi-ta-actions fi-align-start fi-wrapped"></div>
 

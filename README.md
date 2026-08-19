@@ -296,7 +296,7 @@ use Filament\Tables\Enums\FiltersLayout;
 
 ## Search
 
-`->searchable([...])` puts a search field in the header toolbar, beside the filters trigger if you have one.
+`->searchable([...])` puts a search field in the header toolbar, sharing the row with the filters trigger if you have one.
 
 ```php
 ->searchable(['title', 'body'])
@@ -306,9 +306,22 @@ use Filament\Tables\Enums\FiltersLayout;
 |---|---|
 | ![Search field, light mode](docs/images/search-light.png) | ![Search field, dark mode](docs/images/search-dark.png) |
 
-Name the database columns to search directly on the table, as above. The usual Filament approach of marking a `TextColumn` as `->searchable()` also works, but every column you add to `->columns()` is rendered inside the card, so a column added purely to enable search would show up as stray text under the entry.
+**Name the columns on the table**, as above, rather than marking a column `->searchable()`. Both work, but the timeline renders every column you pass to `->columns()` inside the card, so a `TextColumn` added purely to enable search shows up as stray text under the entry.
 
-Per-column search (`->searchable(isIndividual: true)`) has nowhere to render on a timeline and is not supported.
+Filament's search options pass through unchanged:
+
+```php
+->searchable(['title', 'body'])
+->searchPlaceholder('Search updates')
+->searchDebounce('700ms')
+->searchOnBlur()
+```
+
+`->searchUsing(fn (Builder $query, string $search) => ...)` works too, if you need to control the query.
+
+Searching applies before grouping, so day headers that end up empty disappear along with their cards, and the empty state shows when nothing matches.
+
+> Per-column search (`->searchable(isIndividual: true)` on a column) is **not supported** — a timeline has no column headers to render the per-column inputs under. Global search only.
 
 ## Per-card actions
 

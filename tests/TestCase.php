@@ -16,7 +16,9 @@ use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Support\ViewErrorBag;
 use Livewire\LivewireServiceProvider;
+use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Workbench\App\Providers\Filament\AdminPanelProvider;
 
 class TestCase extends BaseTestCase
 {
@@ -36,6 +38,7 @@ class TestCase extends BaseTestCase
             WidgetsServiceProvider::class,
             FilamentServiceProvider::class,
             TimelineViewServiceProvider::class,
+            AdminPanelProvider::class,
         ];
     }
 
@@ -57,6 +60,9 @@ class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Filament rebinds Livewire's DataStore as non-shared; a real app reinstates the shared instance, this doesn't.
+        app(DataStore::class)->register();
 
         view()->share('errors', new ViewErrorBag);
     }
